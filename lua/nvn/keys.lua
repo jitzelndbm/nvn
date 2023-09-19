@@ -31,12 +31,25 @@ M.follow_link = function()
 end
 
 M.next_link = function ()
+	-- TODO(refactor): extract to initialization 
 	local language_tree = vim.treesitter.get_parser(0, "markdown_inline")
 	local syntax_tree = language_tree:parse()
 	local root = syntax_tree[1]:root()
+
+	-- parse the query
 	local parse_query = vim.treesitter.query.parse("markdown_inline", [[(inline_link) @id]])
-	for _, capture, _ in parse_query:iter_captures(root, 0, 0, 1000) do
-		print(vim.treesitter.get_node_text(capture, 0))
+
+	local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
+	local file_rows = tonumber(vim.fn.system({ 'wc', '-l', vim.fn.expand('%') })) or 0
+
+	local iterator = parse_query:iter_captures(root, 0, 0, file_rows)
+	for _, capture, _ in iterator do
+		print(vim.inspect(capture))
+		local capture_row,capture_column,_ = capture:start()
+		if (my_row == capture_row and my_column < capture_column) or my_row < capture_row then
+			vim.api.nvim_win_set_cursor(0, {capture_row+1,capture_column})
+			break
+		end
 	end
 end
 
