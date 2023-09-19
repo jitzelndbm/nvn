@@ -6,14 +6,17 @@ local keys = require("nvn.keys")
 local M = {}
 
 local function add_keybinds()
-	-- Follow link
 	vim.keymap.set('n', '<CR>', function() keys.follow_link() end)
-
-
+	vim.keymap.set('n', '<Backspace>', function() keys.previous_page() end)
+	vim.keymap.set('n', '<Tab>', function() keys.next_link() end)
+	vim.keymap.set('n', '<S-Tab>', function() keys.previous_link() end)
 end
 
-local function index_file(path)
-	-- if file is markdown && in notes dir, index the links
+local function add_commands()
+	vim.api.nvim_create_user_command('NvnFollowLink', function() keys.follow_link() end, {})
+	vim.api.nvim_create_user_command('NvnPreviousPage', function() keys.previous_page() end, {})
+	vim.api.nvim_create_user_command('NvnNextLink', function() keys.next_link() end, {})
+	vim.api.nvim_create_user_command('NvnPreviousLink', function() keys.previous_link() end, {})
 end
 
 M.setup = function (options)
@@ -21,17 +24,11 @@ M.setup = function (options)
 		dirs = { '~/dx/notes-test', 'gaming' }
 	}
 
+	-- settings
+	vim.wo.conceallevel = 2
 
-	-- Detect if dir is in files 
-	--
-	
-
-	--add_keybinds()
-	-- If not, close setup
-	return "gaming"
+	add_keybinds()
+	add_commands()
 end
-
--- lazy, only enable on markdown files. See if
-
 
 return M
