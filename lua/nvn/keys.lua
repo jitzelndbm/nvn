@@ -12,23 +12,35 @@ end
 local function process_link(url)
 	if url:find(".md$") then
 		vim.cmd.edit(url)
+		return url
 	elseif url:find("%.%a+$") then
 		vim.fn.system('xdg-open ' .. url)
+		return nil
 	else
-		vim.cmd.edit(url .. ".md")
+		url = url .. ".md"
+
+		vim.cmd.edit(url)
+		return url
 	end
 end
 
-M.follow_link = function()
+M.follow_link = function(pages)
 	local node = ts_utils.get_node_at_cursor();
 	local node_type = node:type();
+	local url = nil
 	if node_type == 'link_destination' or node_type == 'link_text' or node_type == 'link_description' then
-		process_link(get_url_from_node(node:parent()))
+		url = process_link(get_url_from_node(node:parent()))
 	elseif node_type == 'inline_link' then
-		process_link(get_url_from_node(node))
+		url = process_link(get_url_from_node(node))
 	else
 		vim.cmd'norm! j'
 	end
+
+	if url ~= nil then
+		pages[#pages+1] = url
+	end
+
+	return pages
 end
 
 local function get_links()
@@ -90,6 +102,16 @@ M.previous_link = function ()
 			break
 		end
 	end
+end
+
+M.previous_page = function(pages)
+
+	if #pages ~= 0 then
+		vim.cmd.edit(pages[#pages-1])
+		table.remove(pages)
+	end
+
+	return pages
 end
 
 return M
