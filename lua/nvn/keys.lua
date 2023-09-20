@@ -11,13 +11,10 @@ end
 
 local function process_link(url)
 	if url:find(".md$") then
-		print(".md gaming")
 		vim.cmd.edit(url)
 	elseif url:find("%.%a+$") then
-		print("xdg gaming")
 		vim.fn.system('xdg-open ' .. url)
 	else
-		print("no extension gaming")
 		vim.cmd.edit(url .. ".md")
 	end
 end
@@ -34,7 +31,7 @@ M.follow_link = function()
 	end
 end
 
-M.next_link = function ()
+local function get_links()
 	-- TODO(refactor): extract to initialization 
 	local language_tree = vim.treesitter.get_parser(0, "markdown_inline")
 	local syntax_tree = language_tree:parse()
@@ -43,22 +40,56 @@ M.next_link = function ()
 	-- parse the query
 	local parse_query = vim.treesitter.query.parse("markdown_inline", [[(inline_link) @id]])
 
-	local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
 	local file_rows = tonumber(vim.fn.system({ 'wc', '-l', vim.fn.expand('%') })) or 0
 
-	local iterator = parse_query:iter_captures(root, 0, 0, file_rows)
-	for _, capture, _ in iterator do
-		print(vim.inspect(capture))
+	local iter = parse_query:iter_captures(root, 0, 0, file_rows)
+
+	-- put all the links into a table
+	local a = {}
+	local i = 1
+	for _, capture, _ in iter do
 		local capture_row,capture_column,_ = capture:start()
-		if (my_row == capture_row and my_column < capture_column) or my_row < capture_row then
-			vim.api.nvim_win_set_cursor(0, {capture_row+1,capture_column})
+		a[i] = {capture_row+1,capture_column}
+		i = i + 1
+	end
+
+	return a
+end
+
+M.next_link = function ()
+	local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
+
+	local iterator = get_links()
+	for _,coords in pairs(iterator) do
+		if (my_row == coords[1] and my_column < coords[2]) or my_row < coords[1] then
+			vim.api.nvim_win_set_cursor(0, {coords[1],coords[2]})
+			break
+		elseif next(iterator,_) == nil then
+			vim.api.nvim_win_set_cursor(0, {iterator[1][1],iterator[1][2]})
 			break
 		end
 	end
 end
 
-M.previous_page = function ()
+M.previous_link = function ()
+	local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
 
+	-- inverse the table of link coordinates 
+	local temp = get_links()
+	local iterator = {}
+	for i=#temp, 1, -1 do
+		iterator[#iterator+1] = temp[i]
+	end
+
+	for _,coords in pairs(iterator) do
+		if (my_row == coords[1] and my_column > coords[2]) or my_row > coords[1] then
+			vim.api.nvim_win_set_cursor(0, {coords[1],coords[2]})
+			break
+		elseif next(iterator,_) == nil then
+			vim.api.nvim_win_set_cursor(0, {iterator[1][1],iterator[1][2]})
+			break
+		end
+	end
 end
 
 return M
