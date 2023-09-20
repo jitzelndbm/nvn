@@ -10,11 +10,15 @@ local function get_url_from_node(node)
 end
 
 local function process_link(url)
-	-- types of links: file, xdg 
-	if not url:find('^https://') and not url:find("^mailto:") then
+	if url:find(".md$") then
+		print(".md gaming")
 		vim.cmd.edit(url)
-	else
+	elseif url:find("%.%a+$") then
+		print("xdg gaming")
 		vim.fn.system('xdg-open ' .. url)
+	else
+		print("no extension gaming")
+		vim.cmd.edit(url .. ".md")
 	end
 end
 
