@@ -25,8 +25,11 @@ M.setup = function (options)
 		dirs = { '~/dx/notes-test', 'gaming' }
 	}
 
-	-- settings
+	-- vim window settings
 	vim.wo.conceallevel = 2
+	vim.wo.linebreak = true
+	vim.wo.number = false
+	vim.wo.relativenumber = false
 
 	add_keybinds()
 	add_commands()
