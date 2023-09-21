@@ -8,7 +8,6 @@ local function get_url_from_node(node)
 	local url = node_dest[2]:sub(1,-2) -- rm last char
 	return url
 end
-
 local function process_link(url)
 	if url:find(".md$") then
 		vim.cmd.edit(url)
@@ -23,7 +22,6 @@ local function process_link(url)
 		return url
 	end
 end
-
 M.follow_link = function(pages)
 	local node = ts_utils.get_node_at_cursor();
 	local node_type = node:type();
@@ -67,7 +65,6 @@ local function get_links()
 
 	return a
 end
-
 M.next_link = function ()
 	local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
 
@@ -82,7 +79,6 @@ M.next_link = function ()
 		end
 	end
 end
-
 M.previous_link = function ()
 	local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
 
@@ -105,10 +101,11 @@ M.previous_link = function ()
 end
 
 M.previous_page = function(pages)
-
 	if #pages ~= 0 then
 		vim.cmd.edit(pages[#pages-1])
 		table.remove(pages)
+	else
+		vim.cmd.edit("index.md")
 	end
 
 	return pages
