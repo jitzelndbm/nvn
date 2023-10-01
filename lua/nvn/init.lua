@@ -5,7 +5,7 @@
 local keys = require("nvn.keys")
 local autocmd = require("nvn.autocmd")
 
-local M = {}
+local nvn = {}
 Pages = {}
 
 local function add_keybinds()
@@ -13,8 +13,8 @@ local function add_keybinds()
 	vim.keymap.set('n', '<Backspace>', function() Pages=keys.previous_page(Pages) end)
 	vim.keymap.set('n', '<Tab>', function() keys.next_link() end)
 	vim.keymap.set('n', '<S-Tab>', function() keys.previous_link() end)
-
 	vim.keymap.set('n', '<leader>ff', function() print(require"telescope.builtin".find_files()) end)
+	vim.keymap.set('n', '<leader>id', function () keys.insert_date() end)
 
 	-- formatting
 	vim.keymap.set('n', '=', function ()
@@ -51,6 +51,7 @@ local function add_commands()
 	vim.api.nvim_create_user_command('NvnPreviousPage', function() Pages=keys.previous_page(Pages) end, {})
 	vim.api.nvim_create_user_command('NvnNextLink', function() keys.next_link() end, {})
 	vim.api.nvim_create_user_command('NvnPreviousLink', function() keys.previous_link() end, {})
+	vim.api.nvim_create_user_command('NvnInsertDate', function () keys.insert_date() end, {})
 
 	vim.api.nvim_create_user_command('NvnClose', function() autocmd.close() end, {})
 	vim.cmd[[cnoreabbrev <expr> q "NvnClose"]]
@@ -58,19 +59,19 @@ local function add_commands()
 	vim.cmd[[cnoreabbrev <expr> qa "NvnClose"]]
 end
 
-M.setup = function (options)
-	local options = {
-		dirs = { '~/dx/notes-test', 'gaming' }
-	}
-
+nvn.setup = function()
 	-- vim window settings
 	vim.wo.conceallevel = 2
 	vim.wo.linebreak = true
 	vim.wo.number = false
 	vim.wo.relativenumber = false
 
+	vim.bo.filetype = 'markdown'
+	vim.bo.ft='markdown'
+	vim.wo.foldmethod = 'syntax'
+
 	add_keybinds()
 	add_commands()
 end
 
-return M
+return nvn
