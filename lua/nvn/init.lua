@@ -15,6 +15,8 @@ local function add_keybinds()
 	vim.keymap.set('n', '<S-Tab>', function() keys.previous_link() end)
 	vim.keymap.set('n', '<leader>ff', function() print(require"telescope.builtin".find_files()) end)
 	vim.keymap.set('n', '<leader>id', function () keys.insert_date() end)
+	vim.keymap.set('n', '<leader>if', function () keys.insert_future_date() end)
+	vim.keymap.set('n', '<leader>ia', function () keys.new_appo() end)
 
 	-- formatting
 	vim.keymap.set('n', '=', function ()
@@ -52,6 +54,8 @@ local function add_commands()
 	vim.api.nvim_create_user_command('NvnNextLink', function() keys.next_link() end, {})
 	vim.api.nvim_create_user_command('NvnPreviousLink', function() keys.previous_link() end, {})
 	vim.api.nvim_create_user_command('NvnInsertDate', function () keys.insert_date() end, {})
+	vim.api.nvim_create_user_command('NvnInsertFutureDate', function () keys.insert_future_date() end, {})
+	vim.api.nvim_create_user_command('NvnNewAppointment', function () keys.new_appo() end, {})
 
 	vim.api.nvim_create_user_command('NvnClose', function() autocmd.close() end, {})
 	vim.cmd[[cnoreabbrev <expr> q "NvnClose"]]
@@ -66,9 +70,10 @@ nvn.setup = function()
 	vim.wo.number = false
 	vim.wo.relativenumber = false
 
+	vim.wo.foldmethod = 'syntax'
+	vim.cmd[[let g:markdown_folding = 1]]
 	vim.bo.filetype = 'markdown'
 	vim.bo.ft='markdown'
-	vim.wo.foldmethod = 'syntax'
 
 	add_keybinds()
 	add_commands()

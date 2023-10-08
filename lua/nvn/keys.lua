@@ -111,16 +111,68 @@ M.previous_page = function(pages)
 	return pages
 end
 
-M.insert_date = function ()
-	local handle = io.popen("date +'%V: (%a) %d-%b'")
-	local date = handle:read('*a')
-	handle:close()
-
+local function insert_text_at_pos(text,newline)
+	if newline then
+		vim.cmd[[norm o]]
+	end
 	local pos = vim.api.nvim_win_get_cursor(0)[2]
 	local line = vim.api.nvim_get_current_line()
-
-	local nline = line:sub(0, pos) .. string.format(' %s',date:gsub('[\n\r]', '') or 'none: command not found or somehting') .. line:sub(pos + 1)
+	local nline = line:sub(0, pos) .. string.format('%s',text:gsub('[\n\r]', '') or 'none: command not found or somehting') .. line:sub(pos + 1)
 	vim.api.nvim_set_current_line(nline)
+end
+local function get_command_output(command)
+	local handle = io.popen(command)
+	local output = handle:read('*a')
+	handle:close()
+	return output
+end
+M.insert_date = function ()
+	local date = get_command_output("date +'%V: (%a) %d-%b'")
+	insert_text_at_pos(date)
+end
+M.insert_future_date = function ()
+	local f = vim.fn.input("Days ahead: ")
+
+	if f == nil or f == '' then
+		return 0
+	end
+
+	local command = string.format("date --date='%d days' +'%%V: (%%a) %%d-%%b'", f)
+	print(command)
+	local date = get_command_output(command)
+	insert_text_at_pos(date)
+end
+M.new_appo = function ()
+	local days = vim.fn.input("Days ahead: ")
+	if days == nil or days == '' then
+		return 0
+	end
+
+	local date = get_command_output(string.format("date --date='%d days' +'%%V: (%%a) %%d-%%b'", days))
+
+	local minutes = vim.fn.input("Minutes: ")
+	if minutes == nil or minutes == '' then
+		return 0
+	elseif math.floor(minutes/100)==0 then
+		if math.floor(minutes/10)==0 then
+			minutes=minutes..'  '
+		else
+			minutes=minutes..' '
+		end
+	end
+
+	local tag = vim.fn.input("Tag: ")
+	if tag == nil or tag == '' then
+		return 0
+	end
+
+	local description = vim.fn.input("Description: ")
+	if description == nil or description == '' then
+		return 0
+	end
+
+	local appointment = string.format("- [ ] `%s` | %s | `%s`: %s", minutes, date, tag, description)
+	insert_text_at_pos(appointment,true)
 end
 
 return M
