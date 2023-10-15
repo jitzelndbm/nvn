@@ -12,7 +12,7 @@ local function process_link(url)
 	if url:find(".md$") then
 		vim.cmd.edit(url)
 		return url
-	elseif url:find("%.%a+$") then
+	elseif url:find("%.%w+$") then
 		os.execute('xdg-open ' .. vim.fn.shellescape(url) .. "&")
 		return nil
 	else
