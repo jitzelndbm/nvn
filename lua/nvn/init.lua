@@ -21,7 +21,7 @@ local function add_keybinds()
 	vim.keymap.set('n', '<leader>gh', function () Pages=keys.go_home(Pages) end)
 
 	-- formatting
-	vim.keymap.set('n', '=', function ()
+	vim.keymap.set('n', '<leader>=', function ()
 		local line_content = vim.api.nvim_get_current_line()
 		if line_content:find("^######") then
 			return nil
@@ -38,7 +38,7 @@ local function add_keybinds()
 		vim.api.nvim_win_set_cursor(0,{my_row,my_column})
 	end)
 
-	vim.keymap.set('n', '-', function ()
+	vim.keymap.set('n', '<leader>-', function ()
 		local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
 		local line_content = vim.api.nvim_get_current_line()
 		if line_content:find("^# ") then
