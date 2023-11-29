@@ -17,6 +17,8 @@ local function add_keybinds()
 	vim.keymap.set('n', '<leader>id', function () keys.insert_date() end)
 	vim.keymap.set('n', '<leader>if', function () keys.insert_future_date() end)
 	vim.keymap.set('n', '<leader>ia', function () keys.new_appo() end)
+	vim.keymap.set('n', '<leader>rf', function () keys.reload_folding() end)
+	vim.keymap.set('n', '<leader>gh', function () Pages=keys.go_home(Pages) end)
 
 	-- formatting
 	vim.keymap.set('n', '=', function ()
@@ -56,6 +58,8 @@ local function add_commands()
 	vim.api.nvim_create_user_command('NvnInsertDate', function () keys.insert_date() end, {})
 	vim.api.nvim_create_user_command('NvnInsertFutureDate', function () keys.insert_future_date() end, {})
 	vim.api.nvim_create_user_command('NvnNewAppointment', function () keys.new_appo() end, {})
+	vim.api.nvim_create_user_command('NvnReloadFolding', function () keys.reload_folding() end, {})
+	vim.api.nvim_create_user_command('NvnGoHome', function () Pages=keys.go_home(Pages) end, {})
 
 	vim.api.nvim_create_user_command('NvnClose', function() autocmd.close() end, {})
 	vim.cmd[[cnoreabbrev <expr> q "NvnClose"]]
@@ -65,6 +69,10 @@ end
 
 nvn.setup = function()
 	-- vim window settings
+	if vim.api.nvim_buf_get_name(0) ~= string.format("%s/dx/notes/index.md", os.getenv("HOME")) then
+		return
+	end
+
 	vim.wo.conceallevel = 2
 	vim.wo.linebreak = true
 	vim.wo.number = false

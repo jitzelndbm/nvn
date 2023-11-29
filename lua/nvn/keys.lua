@@ -175,4 +175,17 @@ M.new_appo = function ()
 	insert_text_at_pos(appointment,true)
 end
 
+M.reload_folding = function ()
+	vim.wo.foldmethod = 'syntax'
+	vim.cmd[[let g:markdown_folding = 1]]
+	vim.bo.filetype = 'markdown'
+	vim.bo.ft='markdown'
+end
+
+M.go_home = function (pages)
+	vim.cmd.edit("index.md")
+	pages[#pages+1] = "index.md"
+	return pages
+end
+
 return M
