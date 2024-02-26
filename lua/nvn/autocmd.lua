@@ -9,7 +9,7 @@ M.close = function ()
 			break
 		elseif result == "N" then
 			break
-		elseif reult == "B" then
+		elseif result == "B" then
 			vim.cmd.close()
 			break
 		end

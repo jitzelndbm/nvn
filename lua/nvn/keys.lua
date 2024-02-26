@@ -24,8 +24,10 @@ end
 M.follow_link = function(pages)
 	local node = ts_utils.get_node_at_cursor();
 	local node_type = node:type();
+
 	local url = nil
 	if node_type == 'link_destination' or node_type == 'link_text' or node_type == 'link_description' then
+		---@cast node -nil
 		url = process_link(get_url_from_node(node:parent()))
 	elseif node_type == 'inline_link' then
 		url = process_link(get_url_from_node(node))
@@ -140,38 +142,6 @@ M.insert_future_date = function ()
 	print(command)
 	local date = get_command_output(command)
 	insert_text_at_pos(date)
-end
-M.new_appo = function ()
-	local days = vim.fn.input("Days ahead: ")
-	if days == nil or days == '' then
-		return 0
-	end
-
-	local date = get_command_output(string.format("date --date='%d days' +'%%V: (%%a) %%d-%%b'", days))
-
-	local minutes = vim.fn.input("Minutes: ")
-	if minutes == nil or minutes == '' then
-		return 0
-	elseif math.floor(minutes/100)==0 then
-		if math.floor(minutes/10)==0 then
-			minutes=minutes..'  '
-		else
-			minutes=minutes..' '
-		end
-	end
-
-	local tag = vim.fn.input("Tag: ")
-	if tag == nil or tag == '' then
-		return 0
-	end
-
-	local description = vim.fn.input("Description: ")
-	if description == nil or description == '' then
-		return 0
-	end
-
-	local appointment = string.format("- [ ] `%s` | %s | `%s`: %s", minutes, date, tag, description)
-	insert_text_at_pos(appointment,true)
 end
 
 M.reload_folding = function ()

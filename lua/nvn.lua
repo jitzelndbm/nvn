@@ -1,1 +1,1 @@
-return require"nvn".setup()
+return require("nvn")
