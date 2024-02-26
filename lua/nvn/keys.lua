@@ -1,6 +1,5 @@
-local M = {}
-
 local ts_utils = require("nvim-treesitter.ts_utils")
+local M = {}
 
 local function get_url_from_node(node)
 	local node_text = vim.treesitter.get_node_text(node, 0)
@@ -9,7 +8,7 @@ local function get_url_from_node(node)
 	return url
 end
 local function process_link(url)
-	if url:find(".md$") then
+	if url:find(".md$") or url:find(".rem$") then
 		vim.cmd.edit(url)
 		return url
 	elseif url:find("%.%w+$") then
