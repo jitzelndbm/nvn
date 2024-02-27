@@ -18,10 +18,13 @@ local function add_keybinds(options)
 	nkey(options.keymap.previous_page, function() Pages=keys.previous_page(Pages) end)
 	nkey(options.keymap.next_link, function() keys.next_link() end)
 	nkey(options.keymap.previous_link, function() keys.previous_link() end)
-	nkey(options.keymap.insert_date, function () keys.insert_date() end)
-	nkey(options.keymap.insert_future_date, function () keys.insert_future_date() end)
-	nkey(options.keymap.reload_folding, function () keys.reload_folding() end)
+	nkey(options.keymap.insert_date, function () keys.insert_date(options) end)
+	nkey(options.keymap.insert_future_date, function () keys.insert_future_date(options) end)
 	nkey(options.keymap.go_home, function () Pages=keys.go_home(Pages) end)
+
+	if options.appearance.folding then
+		nkey(options.keymap.reload_folding, function () keys.reload_folding() end)
+	end
 
 	vim.keymap.set('n', '<leader>=', function ()
 		local line_content = vim.api.nvim_get_current_line()
@@ -57,11 +60,14 @@ local function add_commands(options)
 	vim.api.nvim_create_user_command('NvnPreviousPage', function() Pages=keys.previous_page(Pages) end, {})
 	vim.api.nvim_create_user_command('NvnNextLink', function() keys.next_link() end, {})
 	vim.api.nvim_create_user_command('NvnPreviousLink', function() keys.previous_link() end, {})
-	vim.api.nvim_create_user_command('NvnInsertDate', function () keys.insert_date() end, {})
-	vim.api.nvim_create_user_command('NvnInsertFutureDate', function () keys.insert_future_date() end, {})
-	vim.api.nvim_create_user_command('NvnReloadFolding', function () keys.reload_folding() end, {})
+	vim.api.nvim_create_user_command('NvnInsertDate', function () keys.insert_date(options) end, {})
+	vim.api.nvim_create_user_command('NvnInsertFutureDate', function () keys.insert_future_date(options) end, {})
 	vim.api.nvim_create_user_command('NvnGoHome', function () Pages=keys.go_home(Pages) end, {})
 	vim.api.nvim_create_user_command('NvnClose', function() autocmd.close() end, {})
+
+	if options.appearance.folding then
+		vim.api.nvim_create_user_command('NvnReloadFolding', function () keys.reload_folding() end, {})
+	end
 
 	-- register aliases
 	if options.strict_closing then

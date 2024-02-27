@@ -1,5 +1,8 @@
 local ts_utils = require("nvim-treesitter.ts_utils")
-local utils = require("util")
+local utils = require("nvn.util")
+
+local SECONDS_IN_DAY = 86400
+
 local M = {}
 
 M.follow_link = function(pages)
@@ -72,20 +75,29 @@ M.previous_page = function(pages)
 	return pages
 end
 
-M.insert_date = function ()
-	local date = utils.get_command_output("date +'%V: (%a) %d-%b'")
+M.insert_date = function (options)
+	local date = tostring(os.date(options.date.format))
+
+	if options.date.lowercase then
+		date = date:lower()
+	end
+
 	utils.insert_text_at_pos(date)
 end
 
-M.insert_future_date = function ()
+M.insert_future_date = function (options)
 	local f = vim.fn.input("Days ahead: ")
 
 	if f == nil or f == '' then
 		return 0
 	end
 
-	local command = string.format("date --date='%d days' +'%%V: (%%a) %%d-%%b'", f)
-	local date = utils.get_command_output(command)
+	local date = tostring(os.date(options.date.format, os.time() + tonumber(f) * SECONDS_IN_DAY))
+
+	if options.date.lowercase then
+		date = date:lower()
+	end
+
 	utils.insert_text_at_pos(date)
 end
 
@@ -96,9 +108,9 @@ M.reload_folding = function ()
 	vim.bo.ft='markdown'
 end
 
-M.go_home = function (pages)
-	vim.cmd.edit("index.md")
-	pages[#pages+1] = "index.md"
+M.go_home = function (pages, options)
+	vim.cmd.edit(options.root)
+	pages[#pages+1] = options.root
 	return pages
 end
 
