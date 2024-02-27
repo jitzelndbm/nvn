@@ -1,11 +1,16 @@
-local ts_utils = require("nvim-treesitter.ts_utils")
-local utils = require("nvn.util")
+--- All the navigation actions are in this file
+-- @module navigation
+local navigation = {}
 
-local SECONDS_IN_DAY = 86400
+-- imports
+local utils = require'nvn.utils'
+local ts_utils = require'nvim-treesitter.ts_utils'
 
-local M = {}
-
-M.follow_link = function(pages, options)
+--- Function to follow the link that is under the cursor
+--- @param pages Array(string)
+--- @param options table
+--- @return Array(string)
+navigation.follow_link = function(pages, options)
 	local node = ts_utils.get_node_at_cursor();
 
 	---@cast node -nil
@@ -28,7 +33,8 @@ M.follow_link = function(pages, options)
 	return pages
 end
 
-M.next_link = function ()
+--- Uses treesitter to find the next link in the current file
+navigation.next_link = function ()
 	local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
 
 	local iterator = utils.get_links()
@@ -43,7 +49,8 @@ M.next_link = function ()
 	end
 end
 
-M.previous_link = function ()
+--- Use treesitter to find the previous link in the file and move the cursor to that link
+navigation.previous_link = function ()
 	local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
 
 	-- inverse the table of link coordinates 
@@ -64,7 +71,10 @@ M.previous_link = function ()
 	end
 end
 
-M.previous_page = function(pages)
+--- Go back to the previously visisted page, remove it from the pages register and return it.
+---@param pages Array(string)
+---@return Array(string)
+navigation.previous_page = function(pages)
 	if #pages ~= 0 then
 		vim.cmd.edit(pages[#pages-1])
 		table.remove(pages)
@@ -75,58 +85,14 @@ M.previous_page = function(pages)
 	return pages
 end
 
-M.insert_date = function (options)
-	local date = tostring(os.date(options.date.format))
-
-	if options.date.lowercase then
-		date = date:lower()
-	end
-
-	utils.insert_text_at_pos(date)
-end
-
-M.insert_future_date = function (options)
-	local f = vim.fn.input("Days ahead: ")
-
-	if f == nil or f == '' then
-		return 0
-	end
-
-	local date = tostring(os.date(options.date.format, os.time() + tonumber(f) * SECONDS_IN_DAY))
-
-	if options.date.lowercase then
-		date = date:lower()
-	end
-
-	utils.insert_text_at_pos(date)
-end
-
-M.reload_folding = function ()
-	vim.wo.foldmethod = 'syntax'
-	vim.cmd[[let g:markdown_folding = 1]]
-	vim.bo.filetype = 'markdown'
-	vim.bo.ft='markdown'
-end
-
-M.go_home = function (pages, options)
+---comment
+---@param pages Array(string)
+---@param options table
+---@return Array(string)
+navigation.go_home = function (pages, options)
 	vim.cmd.edit(options.root)
 	pages[#pages+1] = options.root
 	return pages
 end
 
-M.remove_current_note = function (pages)
-	while true do
-		local result = string.upper(vim.fn.input("Are you sure you want delete the current file? [y/n] "))
-		if result == "Y" then
-			local file_to_delete = vim.api.nvim_buf_get_name(0)
-			vim.api.nvim_buf_delete(0, {force = true})
-			M.previous_page(pages)
-			os.remove(file_to_delete)
-			return
-		elseif result == "N" then
-			return
-		end
-	end
-end
-
-return M
+return navigation

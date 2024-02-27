@@ -1,6 +1,8 @@
-M = {}
+--- Behavioural changes to the editors
+-- @module behaviour
+local behaviour = {}
 
-M.close = function ()
+behaviour.close = function ()
 	while true do
 		local result = string.upper(vim.fn.input("Are you sure you want to exit and save? [y/n/b] "))
 
@@ -16,4 +18,4 @@ M.close = function ()
 	end
 end
 
-return M
+return behaviour
