@@ -21,6 +21,7 @@ local function add_keybinds(options)
 	nkey(options.keymap.insert_date, function () keys.insert_date(options) end)
 	nkey(options.keymap.insert_future_date, function () keys.insert_future_date(options) end)
 	nkey(options.keymap.go_home, function () Pages=keys.go_home(Pages) end)
+	nkey(options.keymap.remove_current_note, function () keys.remove_current_note(Pages) end)
 
 	if options.appearance.folding then
 		nkey(options.keymap.reload_folding, function () keys.reload_folding() end)
@@ -64,6 +65,7 @@ local function add_commands(options)
 	vim.api.nvim_create_user_command('NvnInsertFutureDate', function () keys.insert_future_date(options) end, {})
 	vim.api.nvim_create_user_command('NvnGoHome', function () Pages=keys.go_home(Pages) end, {})
 	vim.api.nvim_create_user_command('NvnClose', function() autocmd.close() end, {})
+	vim.api.nvim_create_user_command('NvnRemoveCurrentNote', function () keys.remove_current_note(Pages) end, {})
 
 	if options.appearance.folding then
 		vim.api.nvim_create_user_command('NvnReloadFolding', function () keys.reload_folding() end, {})
@@ -90,6 +92,7 @@ local default_options = {
 		insert_future_date = "<leader>if",
 		reload_folding = "<leader>rf",
 		go_home = "<leader>gh",
+		remove_current_note = "<leader>rcn"
 	},
 	appearance = {
 		hide_numbers = false,

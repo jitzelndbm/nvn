@@ -29,6 +29,7 @@ Neovim plugin for organising notes in Markdown
 		insert_future_date = "<leader>if",
 		reload_folding = "<leader>rf",
 		go_home = "<leader>gh",
+		remove_current_note = "<leader>rcn"
 	},
 	appearance = {
 		hide_numbers = false,

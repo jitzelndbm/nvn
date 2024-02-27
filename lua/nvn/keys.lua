@@ -114,4 +114,19 @@ M.go_home = function (pages, options)
 	return pages
 end
 
+M.remove_current_note = function (pages)
+	while true do
+		local result = string.upper(vim.fn.input("Are you sure you want delete the current file? [y/n] "))
+		if result == "Y" then
+			local file_to_delete = vim.api.nvim_buf_get_name(0)
+			vim.api.nvim_buf_delete(0, {force = true})
+			M.previous_page(pages)
+			os.remove(file_to_delete)
+			return
+		elseif result == "N" then
+			return
+		end
+	end
+end
+
 return M
