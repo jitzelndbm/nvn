@@ -28,7 +28,7 @@ utils.process_link = function(url, options)
 				local parent_name = vim.api.nvim_buf_get_name(0)
 
 				---@cast file -nil
-				file:write(string.format("[Terug](%s)\n\n# ", parent_name:match("[^/]+$")))
+				file:write(string.format("[Terug](%s)\n\n# ", parent_name:match("^.+/(.+)%..+$")))
 
 				---@cast file -nil
 				file:close()
