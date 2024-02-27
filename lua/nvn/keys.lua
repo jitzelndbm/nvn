@@ -5,7 +5,7 @@ local SECONDS_IN_DAY = 86400
 
 local M = {}
 
-M.follow_link = function(pages)
+M.follow_link = function(pages, options)
 	local node = ts_utils.get_node_at_cursor();
 
 	---@cast node -nil
@@ -14,9 +14,9 @@ M.follow_link = function(pages)
 	local url = nil
 	if node_type == 'link_destination' or node_type == 'link_text' or node_type == 'link_description' then
 		---@cast node -nil
-		url = utils.process_link(utils.get_url_from_node(node:parent()))
+		url = utils.process_link(utils.get_url_from_node(node:parent()), options)
 	elseif node_type == 'inline_link' then
-		url = utils.process_link(utils.get_url_from_node(node))
+		url = utils.process_link(utils.get_url_from_node(node), options)
 	else
 		vim.cmd'norm! j'
 	end

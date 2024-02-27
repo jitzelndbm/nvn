@@ -14,7 +14,7 @@ local function nkey(key, func)
 end
 
 local function add_keybinds(options)
-	nkey(options.keymap.follow_link, function() Pages=keys.follow_link(Pages) end)
+	nkey(options.keymap.follow_link, function() Pages=keys.follow_link(Pages, options) end)
 	nkey(options.keymap.previous_page, function() Pages=keys.previous_page(Pages) end)
 	nkey(options.keymap.next_link, function() keys.next_link() end)
 	nkey(options.keymap.previous_link, function() keys.previous_link() end)
@@ -80,6 +80,7 @@ end
 local default_options = {
 	root = string.format("%s/.notes/index.md", os.getenv("HOME")),
 	strict_closing = false,
+	automatic_creation = false,
 	keymap = {
 		follow_link = "<CR>",
 		previous_page = "<Backspace>",

@@ -7,17 +7,38 @@ utils.get_url_from_node = function(node)
 	return url
 end
 
-utils.process_link = function(url)
+utils.process_link = function(url, options)
 	if url:find(".md$") or url:find(".rem$") then
 		vim.cmd.edit(url)
 		return url
 	elseif url:find("%.%w+$") then
 		os.execute('xdg-open ' .. vim.fn.shellescape(url) .. "&")
 		return nil
-	else
-		-- TODO: if file cannot be found,
-		-- put .rem after it
+	else -- no file extension -> will expect markdown
+
 		url = url .. ".md"
+
+		if options.automatic_creation then
+			local file_exists = io.open(url, "r")
+			if file_exists then
+				file_exists:close()
+			else
+				local file = io.open(url, "w")
+
+				local parent_name = vim.api.nvim_buf_get_name(0)
+
+				---@cast file -nil
+				file:write(string.format("[Terug](%s)\n\n# ", parent_name:match("[^/]+$")))
+
+				---@cast file -nil
+				file:close()
+
+				vim.cmd.edit(url)
+				vim.api.nvim_command("normal! G$")
+				vim.api.nvim_command("startinsert!")
+				return url
+			end
+		end
 
 		vim.cmd.edit(url)
 		return url
