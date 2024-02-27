@@ -38,7 +38,6 @@ local default_options = {
 }
 
 nvn.setup = function(user_options)
-
 	-- merge the user options with the defaults
 	-- so that nvn can be configured from lazy
 	local options
@@ -48,6 +47,12 @@ nvn.setup = function(user_options)
 		options = default_options
 	end
 
+	-- cancel setup if the root isn't opened
+	if vim.api.nvim_buf_get_name(0) ~= options.root then
+		return
+	end
+
+	-- run the main plugin logic
 	register.appearance(options)
 	register.keys(options)
 	register.commands(options)
