@@ -10,11 +10,7 @@ local nvn = {}
 Pages = {}
 
 local function nkey(key, func)
-	vim.keymap.set(
-		'n',
-		key,
-		func
-	)
+	vim.keymap.set('n', key, func)
 end
 
 local function add_keybinds(options)
@@ -27,7 +23,6 @@ local function add_keybinds(options)
 	nkey(options.keymap.reload_folding, function () keys.reload_folding() end)
 	nkey(options.keymap.go_home, function () Pages=keys.go_home(Pages) end)
 
-	-- formatting
 	vim.keymap.set('n', '<leader>=', function ()
 		local line_content = vim.api.nvim_get_current_line()
 		if line_content:find("^######") then
