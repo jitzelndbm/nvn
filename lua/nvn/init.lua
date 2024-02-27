@@ -13,7 +13,7 @@ local function nkey(key, func)
 	vim.keymap.set('n', key, func)
 end
 
-local function add_keybinds(options)
+local function register_keys(options)
 	nkey(options.keymap.follow_link, function() Pages=keys.follow_link(Pages, options) end)
 	nkey(options.keymap.previous_page, function() Pages=keys.previous_page(Pages) end)
 	nkey(options.keymap.next_link, function() keys.next_link() end)
@@ -56,7 +56,7 @@ local function add_keybinds(options)
 	end)
 end
 
-local function add_commands(options)
+local function register_commands(options)
 	vim.api.nvim_create_user_command('NvnFollowLink', function() Pages=keys.follow_link(Pages) end, {})
 	vim.api.nvim_create_user_command('NvnPreviousPage', function() Pages=keys.previous_page(Pages) end, {})
 	vim.api.nvim_create_user_command('NvnNextLink', function() keys.next_link() end, {})
@@ -77,6 +77,29 @@ local function add_commands(options)
 		vim.cmd[[cnoreabbrev <expr> wq "NvnClose"]]
 		vim.cmd[[cnoreabbrev <expr> qa "NvnClose"]]
 	end
+end
+
+local function change_appearance(options)
+	-- check if the input file matches the root file
+	-- if not return, since it is not in the wiki
+	if vim.api.nvim_buf_get_name(0) ~= options.root then
+		return
+	end
+
+	if options.appearance.hide_numbers then
+		vim.wo.linebreak = true
+		vim.wo.number = false
+		vim.wo.relativenumber = false
+	end
+
+	if options.appearance.folding then
+		vim.wo.foldmethod = 'syntax'
+		vim.wo.conceallevel = 2
+		vim.cmd[[let g:markdown_folding = 1]]
+	end
+
+	vim.bo.filetype = 'markdown'
+	vim.bo.ft='markdown'
 end
 
 local default_options = {
@@ -115,31 +138,10 @@ nvn.setup = function(user_options)
 		options = default_options
 	end
 
-	-- check if the input file matches the root file
-	-- if not return, since it is not in the wiki
-	if vim.api.nvim_buf_get_name(0) ~= options.root then
-		return
-	end
 
-	if options.appearance.hide_numbers then
-		vim.wo.linebreak = true
-		vim.wo.number = false
-		vim.wo.relativenumber = false
-	end
-
-	if options.appearance.folding then
-		vim.wo.foldmethod = 'syntax'
-		vim.wo.conceallevel = 2
-		vim.cmd[[let g:markdown_folding = 1]]
-	end
-
-	vim.bo.filetype = 'markdown'
-	vim.bo.ft='markdown'
-
-	-- load the main keybinds 
-	-- and commands
-	add_keybinds(options)
-	add_commands(options)
+	change_appearance(options)
+	register_keys(options)
+	register_commands(options)
 end
 
 return nvn
