@@ -15,6 +15,8 @@ Neovim plugin for organising notes in Markdown
 ```
 
 ## Default options
+I highly recommend to change the root option. This is the path to the index of the wiki, the plugin is only activated if this specific file is opened.
+
 ```lua
 {
 	root = string.format("%s/.notes/index.md", os.getenv("HOME")),
@@ -29,7 +31,9 @@ Neovim plugin for organising notes in Markdown
 		insert_future_date = "<leader>if",
 		reload_folding = "<leader>rf",
 		go_home = "<leader>gh",
-		remove_current_note = "<leader>rcn"
+		remove_current_note = "<leader>rcn",
+		increase_header_level = "<leader>=",
+		decrease_header_level = "<leader>-"
 	},
 	appearance = {
 		hide_numbers = false,

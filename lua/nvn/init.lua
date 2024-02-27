@@ -22,53 +22,31 @@ local function register_keys(options)
 	nkey(options.keymap.insert_future_date, function () actions.file.insert_future_date(options) end)
 	nkey(options.keymap.go_home, function () Pages=actions.navigation.go_home(Pages, options) end)
 	nkey(options.keymap.remove_current_note, function () actions.structure.remove_current_note(Pages) end)
+	nkey(options.keymap.increase_header_level, function () actions.file.increase_header_level() end)
+	nkey(options.keymap.decrease_header_leve, function () actions.file.decrease_header_level() end)
 
 	if options.appearance.folding then
 		nkey(options.keymap.reload_folding, function () actions.other.reload_folding() end)
 	end
+end
 
-	vim.keymap.set('n', '<leader>=', function ()
-		local line_content = vim.api.nvim_get_current_line()
-		if line_content:find("^######") then
-			return nil
-		end
-
-		local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
-
-		if line_content:find("^#") then
-			vim.cmd.norm("0i#")
-		else
-			vim.cmd.norm("0i# ")
-		end
-
-		vim.api.nvim_win_set_cursor(0,{my_row,my_column})
-	end)
-
-	vim.keymap.set('n', '<leader>-', function ()
-		local my_row,my_column = unpack(vim.api.nvim_win_get_cursor(0))
-		local line_content = vim.api.nvim_get_current_line()
-		if line_content:find("^# ") then
-			vim.cmd.norm("0xx")
-		elseif line_content:find("^#") then
-			vim.cmd.norm("0x")
-		end
-		vim.api.nvim_win_set_cursor(0,{my_row,my_column})
-	end)
+local function uc(cmd, action)
+	vim.api.nvim_create_user_command(cmd, action, {})
 end
 
 local function register_commands(options)
-	vim.api.nvim_create_user_command('NvnFollowLink', function() Pages=actions.navigation.follow_link(Pages, options) end, {})
-	vim.api.nvim_create_user_command('NvnPreviousPage', function() Pages=actions.navigation.previous_page(Pages) end, {})
-	vim.api.nvim_create_user_command('NvnNextLink', function() actions.navigation.next_link() end, {})
-	vim.api.nvim_create_user_command('NvnPreviousLink', function() actions.navigation.previous_link() end, {})
-	vim.api.nvim_create_user_command('NvnInsertDate', function () actions.file.insert_date(options) end, {})
-	vim.api.nvim_create_user_command('NvnInsertFutureDate', function () actions.file.insert_future_date(options) end, {})
-	vim.api.nvim_create_user_command('NvnGoHome', function () Pages=actions.navigation.go_home(Pages, options) end, {})
-	vim.api.nvim_create_user_command('NvnClose', function() behaviour.close() end, {})
-	vim.api.nvim_create_user_command('NvnRemoveCurrentNote', function () actions.close.remove_current_note(Pages) end, {})
+	uc('NvnFollowLink', function() Pages=actions.navigation.follow_link(Pages, options) end)
+	uc('NvnPreviousPage', function() Pages=actions.navigation.previous_page(Pages) end)
+	uc('NvnNextLink', function() actions.navigation.next_link() end)
+	uc('NvnPreviousLink', function() actions.navigation.previous_link() end)
+	uc('NvnInsertDate', function () actions.file.insert_date(options) end)
+	uc('NvnInsertFutureDate', function () actions.file.insert_future_date(options) end)
+	uc('NvnGoHome', function () Pages=actions.navigation.go_home(Pages, options) end)
+	uc('NvnClose', function() behaviour.close() end)
+	uc('NvnRemoveCurrentNote', function () actions.close.remove_current_note(Pages) end)
 
 	if options.appearance.folding then
-		vim.api.nvim_create_user_command('NvnReloadFolding', function () actions.other.reload_folding() end, {})
+		uc('NvnReloadFolding', function () actions.other.reload_folding() end)
 	end
 
 	-- register aliases
@@ -115,7 +93,9 @@ local default_options = {
 		insert_future_date = "<leader>if",
 		reload_folding = "<leader>rf",
 		go_home = "<leader>gh",
-		remove_current_note = "<leader>rcn"
+		remove_current_note = "<leader>rcn",
+		increase_header_level = "<leader>=",
+		decrease_header_level = "<leader>-"
 	},
 	appearance = {
 		hide_numbers = false,
@@ -137,7 +117,6 @@ nvn.setup = function(user_options)
 	else
 		options = default_options
 	end
-
 
 	change_appearance(options)
 	register_keys(options)
