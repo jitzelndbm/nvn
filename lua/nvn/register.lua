@@ -19,8 +19,9 @@ register.keys = function (options)
 	nkey(options.keymap.insert_future_date, function () actions.file.insert_future_date(options) end)
 	nkey(options.keymap.go_home, function () Pages=actions.navigation.go_home(Pages, options) end)
 	nkey(options.keymap.remove_current_note, function () actions.structure.remove_current_note(Pages) end)
+	nkey(options.keymap.rename_current_note, function () actions.structure.rename_current_note(options) end)
 	nkey(options.keymap.increase_header_level, function () actions.file.increase_header_level() end)
-	nkey(options.keymap.decrease_header_leve, function () actions.file.decrease_header_level() end)
+	nkey(options.keymap.decrease_header_level, function () actions.file.decrease_header_level() end)
 
 	if options.appearance.folding then
 		nkey(options.keymap.reload_folding, function () actions.other.reload_folding() end)
@@ -38,6 +39,7 @@ register.commands = function (options)
 	uc('NvnGoHome', function () Pages=actions.navigation.go_home(Pages, options) end)
 	uc('NvnClose', function() behaviour.close() end)
 	uc('NvnRemoveCurrentNote', function () actions.close.remove_current_note(Pages) end)
+	uc('NvnRenameCurrentNote', function () actions.structure.rename_current_note(options) end)
 
 	if options.appearance.folding then
 		uc('NvnReloadFolding', function () actions.other.reload_folding() end)

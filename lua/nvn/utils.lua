@@ -46,16 +46,14 @@ utils.process_link = function(url, options)
 end
 
 utils.get_links = function()
-	-- TODO(refactor): extract to initialization 
+
 	local language_tree = vim.treesitter.get_parser(0, "markdown_inline")
 	local syntax_tree = language_tree:parse()
 	local root = syntax_tree[1]:root()
 
 	-- parse the query
 	local parse_query = vim.treesitter.query.parse("markdown_inline", [[(inline_link) @id]])
-
-	local file_rows = tonumber(vim.fn.system({ 'wc', '-l', vim.fn.expand('%') })) or 0
-
+	local file_rows = vim.api.nvim_buf_line_count(0) or 0
 	local iter = parse_query:iter_captures(root, 0, 0, file_rows)
 
 	-- put all the links into a table
@@ -63,7 +61,12 @@ utils.get_links = function()
 	local i = 1
 	for _, capture, _ in iter do
 		local capture_row,capture_column,_ = capture:start()
-		a[i] = {capture_row+1,capture_column}
+		a[i] = {
+			capture_row+1, -- start row
+			capture_column, -- start column
+			vim.treesitter.get_node_text(capture:child(1), 0), -- link text 
+			vim.treesitter.get_node_text(capture:child(4), 0) -- url text
+		}
 		i = i + 1
 	end
 

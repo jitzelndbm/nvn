@@ -23,7 +23,8 @@ local default_options = {
 		insert_future_date = "<leader>if",
 		reload_folding = "<leader>rf",
 		go_home = "<leader>gh",
-		remove_current_note = "<leader>rcn",
+		remove_current_note = "<leader>dcn",
+		rename_current_note = "<leader>rcn",
 		increase_header_level = "<leader>=",
 		decrease_header_level = "<leader>-"
 	},
