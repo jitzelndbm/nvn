@@ -11,6 +11,8 @@ utils.process_link = function(url, options)
 	if url:find(".md$") or url:find(".rem$") then
 		vim.cmd.edit(url)
 		return url
+	elseif url:find("^https:%/%/") then
+		os.execute(os.getenv("BROWSER") .. " " .. vim.fn.shellescape(url) .. " &")
 	elseif url:find("%.%w+$") then
 		os.execute('xdg-open ' .. vim.fn.shellescape(url) .. "&")
 		return nil
