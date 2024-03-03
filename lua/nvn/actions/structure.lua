@@ -27,15 +27,20 @@ structure.remove_current_note = function (pages)
 end
 
 local function replace_link(line_number, new_label, new_url, old_label, old_url)
-	-- nvim_buf_set_lines({buffer}, {start}, {end}, {strict_indexing}, {replacement})
-	-- nvim_buf_get_lines({buffer}, {start}, {end}, {strict_indexing})
-	-- nvim_buf_get_text({buffer}, {start_row}, {start_col}, {end_row}, {end_col}, {opts})
 	local line = vim.api.nvim_buf_get_lines(0, line_number - 1, line_number, true)[1]
+
 	if old_label == "Terug" then
-		line = line:gsub("%[Terug%]%((" .. old_url .. ")%)", "[Terug]("..new_url..")")
+		line = line:gsub(
+			"%[Terug%]%(" .. old_url .. "%)",
+			"[Terug](" .. new_url .. ")"
+		)
 	else
-		line = line:gsub("%[(" .. old_label .. ")%]%((" .. old_url .. ")%)", "["..new_label.."]("..new_url..")")
+		line = line:gsub(
+			"%[" .. old_label .. "%]%(" .. old_url .. "%)",
+			"[" .. new_label .. "](" .. new_url .. ")"
+		)
 	end
+
 	vim.api.nvim_buf_set_lines(0, line_number - 1, line_number, true, { line })
 end
 
@@ -53,7 +58,7 @@ structure.rename_current_note = function (options)
 	local confirm = (function ()
 		while true do
 			local result = string.upper(vim.fn.input("Are you sure you want to rename this file? [y/n] "))
-		return (result == "Y")
+			return (result == "Y")
 		end
 	end)()
 
@@ -90,10 +95,13 @@ structure.rename_current_note = function (options)
 			--vim.api.nvim_buf_delete(0, {})
 		end)
 
-	if link_added then
+		if link_added then
 			index = index + 1
 		end
 	end
+
+	-- remove the old file
+	os.remove(current_file_path)
 
 	-- reattach to the buffer
 	vim.cmd.edit(new_url_text..".md")
