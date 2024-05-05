@@ -1,0 +1,154 @@
+require 'nvn.history'
+require 'nvn.hierarchy'
+
+Client = {}
+
+function Client:new (config)
+	local instance = setmetatable({}, self)
+	self.__index = self
+
+	instance.config = config or function ()
+		vim.notify("client: config not found while creating client", vim.log.levels.ERROR)
+		return nil
+	end
+
+	instance.history = History:new(config.root)
+	instance.hierarchy = Hierarchy:new()
+
+	instance:set_location(config.root)
+
+	return instance
+end
+
+local function close_other_buffers(new_location, auto_save)
+	for _, buf in pairs(vim.api.nvim_list_bufs()) do
+		local buf_name = vim.api.nvim_buf_get_name(buf)
+
+		-- Skip the scratch buffer
+		if buf_name == "" then
+			goto continue
+		end
+
+		if buf_name ~= new_location
+			and vim.api.nvim_buf_is_loaded(buf) then
+			if auto_save then
+				vim.print(buf_name)
+				vim.cmd.write(buf_name)
+				vim.api.nvim_buf_delete(buf, {})
+			else
+				vim.api.nvim_buf_delete(buf, {
+					force = true
+				})
+			end
+		end
+
+		::continue::
+	end
+
+end
+function Client:set_location (new_location, ignore_history)
+	close_other_buffers(new_location, self.config.behaviour.auto_save)
+
+	self.location = new_location
+	if not ignore_history then
+		History.push(self.history, new_location)
+	end
+	vim.cmd.edit(new_location)
+	vim.notify("client: location updated " .. self.location, vim.log.levels.DEBUG)
+end
+
+function Client:get_next_link(backwards)
+	local parsed_links = {}
+	local links = self:get_links_from_file()
+
+	if not links then
+		return
+	end
+
+	if backwards then
+		for i = #links, 1, -1 do
+			table.insert(parsed_links, links[i])
+		end
+	else
+		parsed_links = links
+	end
+
+	local row, column = unpack(vim.api.nvim_win_get_cursor(0))
+	for _, link in pairs(parsed_links) do
+		if not backwards and ((row == link.row and column < link.column) or row < link.row) then
+			return link
+		elseif backwards and ((row == link.row and column > link.column) or row > link.row) then
+			return link
+		elseif next(links, _) == nil then
+			return parsed_links[1]
+		end
+	end
+end
+
+local function find_links_in_current_buf()
+	local language_tree = vim.treesitter.get_parser(0, "markdown_inline")
+	local syntax_tree = language_tree:parse()
+	local root = syntax_tree[1]:root()
+
+	-- parse the query
+	local parse_query = vim.treesitter.query.parse(
+		"markdown_inline",
+		[[
+			(inline_link) @link
+			(shortcut_link) @shortcut
+			]]
+	)
+	local file_rows = vim.api.nvim_buf_line_count(0) or 0
+	local iter = parse_query:iter_captures(root, 0, 0, file_rows)
+
+	local file_name = vim.api.nvim_buf_get_name(0)
+
+	local links = {}
+	local i = 1
+	for _, node in iter do
+		links[i] = Link:new(node, file_name)
+		i = i + 1
+	end
+
+	return links
+end
+function Client:get_links_from_file(full_path)
+	local links
+	local file_to_check
+
+	if full_path then
+		local found_files = vim.fs.find(
+			function (name, path)
+				return path.."/"..name ==
+					vim.fs.dirname(self.config.root).."/"..full_path
+			end,
+			{
+				type = "file",
+				limit = 1,
+			}
+		)
+
+		if #found_files ~= 1 then
+			vim.notify("client: couldn't fetch files, since file does not exist. Or multiple found!", vim.log.levels.ERROR)
+			return nil
+		end
+
+		file_to_check = found_files[1]
+	end
+
+	vim.api.nvim_buf_call(0, function ()
+	if full_path then
+			vim.cmd.edit(file_to_check)
+		end
+
+		links = find_links_in_current_buf()
+
+	if full_path then
+			vim.api.nvim_buf_delete(0, {})
+		end
+	end)
+
+	return links
+end
+
+return Client

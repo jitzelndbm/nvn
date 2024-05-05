@@ -1,62 +1,104 @@
---- Neovim Notes (NvN), a note taking application for Neovim
--- @author Jitze Lindeboom
--- @license GPL v3
--- @module nvn
 local nvn = {}
 
--- global variables
-Pages = {}
+require 'nvn.link'
+require 'nvn.client'
 
--- imports
-local register = require'nvn.register'
+local default_opts = {
+	root = "dx/notes/index.md",
 
-local default_options = {
-	root = string.format("%s/.notes/index.md", os.getenv("HOME")),
-	strict_closing = false,
-	automatic_creation = false,
-	keymap = {
-		follow_link = "<CR>",
-		previous_page = "<Backspace>",
-		next_link = "<Tab>",
-		previous_link = "<S-Tab>",
-		insert_date = "<leader>id",
-		insert_future_date = "<leader>if",
-		reload_folding = "<leader>rf",
-		go_home = "<leader>gh",
-		remove_current_note = "<leader>dcn",
-		rename_current_note = "<leader>rcn",
-		increase_header_level = "<leader>=",
-		decrease_header_level = "<leader>-"
+	behaviour = {
+		-- :wqa should be used to safely close notes, enforce it.
+		strict_closing = false,
+
+		-- Automatic saving when navigating through links
+		-- WARNING: This setting can lead to data loss, if not enabled
+		auto_save = true,
+
+		-- When a link is pressed and the file does not exist, create it
+		automatic_creation = false,
 	},
+
 	appearance = {
+		-- Hide numbers from the editor
 		hide_numbers = false,
-		folding = true
+
+		-- Enable markdown header folding
+		folding = true,
 	},
-	date = {
-		format = "%d %b %Y",
-		lowercase = true
+
+	templates = {
+		-- Wheter to enable templates or not  
+		enabled = true,
+
+		-- Directory where templates are stored
+		dir = ""
+	},
+
+	dates = {
+		-- Whether to enable date formatting
+		enabled = true,
 	}
 }
 
-nvn.setup = function(user_options)
-	-- merge the user options with the defaults
-	-- so that nvn can be configured from lazy
-	local options
-	if user_options then
-		options = vim.tbl_deep_extend("force", default_options, user_options)
-	else
-		options = default_options
-	end
+local function register(client)
+	vim.api.nvim_create_user_command(
+		'NvnNextLink',
+		function ()
+			local nl = client:get_next_link(false)
+			vim.api.nvim_win_set_cursor(0, {nl.row, nl.column})
+		end,
+		{ desc = "Place the cursor at the beginning of the next link in the file" }
+	)
 
-	-- cancel setup if the root isn't opened
-	if vim.api.nvim_buf_get_name(0) ~= options.root then
-		return
-	end
+	vim.api.nvim_create_user_command(
+		'NvnPreviousLink',
+		function ()
+			local pl = client:get_next_link(true)
+			vim.api.nvim_win_set_cursor(0, {pl.row, pl.column})
+		end,
+		{ desc = "Place the cursor at the beginning of the previous link in the file" }
+	)
 
-	-- run the main plugin logic
-	register.appearance(options)
-	register.keys(options)
-	register.commands(options)
+	vim.api.nvim_create_user_command(
+		'NvnFollowLink',
+		function ()
+			local link
+
+			local node = require'nvim-treesitter.ts_utils'.get_node_at_cursor()
+			local file_name = vim.api.nvim_buf_get_name(0)
+			local node_type = node:type()
+
+			if node_type == 'shortcut_link' or node_type == 'inline_link' then
+				link = Link:new(node, file_name)
+			elseif node_type == 'link_text' or node_type == 'link_description' then
+				link = Link:new(node:parent(), file_name)
+			end
+
+			if not link then
+				vim.cmd"execute \"normal! \\<CR>\""
+				return
+			end
+
+			link:handle(client)
+		end,
+		{ desc = "Follow the link that is under the cursor" }
+	)
+
+	vim.api.nvim_create_user_command(
+		'NvnGotoPrevious',
+		function ()
+			client.history:pop()
+			client:set_location(client.history:last(), true)
+		end,
+		{ desc = "Go to the previous page in the history" }
+	)
+
+end
+
+nvn.setup = function (opts)
+	local parsed_opts = vim.tbl_deep_extend("force", default_opts, opts or {})
+	local c = Client:new(parsed_opts)
+	register(c)
 end
 
 return nvn
