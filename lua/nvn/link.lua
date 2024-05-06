@@ -47,7 +47,7 @@ function Link:handle(client)
 	if #(vim.fs.find(function (name, found_path)
 		return found_path.."/"..name == path
 	end, { limit = 1 })) == 0 then
-		client:new_note(path)
+		client:new_note(path, self.file, self.title)
 	else
 		client:set_location(path)
 	end

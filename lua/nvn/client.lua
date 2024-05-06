@@ -151,31 +151,70 @@ function Client:get_links_from_file(full_path)
 	return links
 end
 
-function Client:new_note(path)
-	local template = Template:new(self.config.root, self.config.templates.dir)
+local function find_relative_path(to_path, from_path)
+	local relative_path = ""
+	local to_basename = vim.fs.basename(to_path)
 
-	if not template then
-		return
+	local from_parts = vim.fn.split(vim.fs.dirname(from_path), "/")
+	local to_parts = vim.fn.split(vim.fs.dirname(to_path), "/")
+
+	while from_parts[1] == to_parts[1] do
+		table.remove(from_parts, 1)
+		table.remove(to_parts, 1)
 	end
 
-	local title = vim.fs.basename(path)
+	for _ = 1, #from_parts, 1 do
+		relative_path = relative_path .. "../"
+	end
+
+	for _, part in pairs(to_parts) do
+		relative_path = relative_path .. part .. "/"
+	end
+
+	return relative_path .. to_basename
+end
+function Client:new_note(path, previous_path, link_title)
+	vim.fn.mkdir(vim.fs.dirname(path), "p")
+
+	if self.config.templates.enabled then
+		link_title = link_title or ""
+		local relative_previous_path = ""
+		if not previous_path then
+			previous_path = ""
+		else
+			relative_previous_path = find_relative_path(path, previous_path)
+		end
+
+		local template = Template:new(self.config.root, self.config.templates.dir)
+		if not template then
+			vim.notify("An error occured in the template", vim.log.levels.ERROR)
+			return
+		end
+
+		local title = vim.fs.basename(path)
 			:gsub(".md$", "")
 			:gsub("-", " ")
-			:gsub("(%a)([%w_']*)", function (first, rest)
-				return first:upper()..rest:lower()
-			end)
+		:gsub("(%a)([%w_']*)", function (first, rest)
+			return first:upper()..rest:lower()
+		end)
 
-	local file_content = template:render({
-		path = path,
-		title = title
-	})
+		local file_content = template:render({
+			path = path,
+			title = title,
+			previous_path = previous_path,
+			link_title = link_title,
+			relative_previous_path = relative_previous_path
+		})
 
-	-- write template output to the file
-	vim.api.nvim_buf_call(0, function ()
-		vim.cmd.edit(path)
-		vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.fn.split(file_content, "\n"))
-		vim.cmd.write(path)
-	end)
+		-- write template output to the file
+		vim.fn.writefile(vim.fn.split(file_content, "\n"), path)
+		--vim.api.nvim_buf_call(0, function ()
+		--	vim.cmd.edit(path)
+		--	vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.fn.split(file_content, "\n"))
+		--	vim.cmd.write(path)
+		--	vim.api.nvim_buf_delete(0, {})
+		--end)
+	end
 
 	self:set_location(path)
 end
