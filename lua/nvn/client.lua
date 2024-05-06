@@ -173,7 +173,11 @@ local function find_relative_path(to_path, from_path)
 
 	return relative_path .. to_basename
 end
-function Client:new_note(path, previous_path, link_title)
+function Client:create_note(path, previous_path, link_title)
+	if not path:sub(1, 1) == "/" then
+		path = self.config.root .. path
+	end
+
 	vim.fn.mkdir(vim.fs.dirname(path), "p")
 
 	if self.config.templates.enabled then
@@ -208,6 +212,8 @@ function Client:new_note(path, previous_path, link_title)
 
 		-- write template output to the file
 		vim.fn.writefile(vim.fn.split(file_content, "\n"), path)
+
+		-- FIXME: Other way to write to files, not sure what is the best
 		--vim.api.nvim_buf_call(0, function ()
 		--	vim.cmd.edit(path)
 		--	vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.fn.split(file_content, "\n"))
@@ -217,6 +223,26 @@ function Client:new_note(path, previous_path, link_title)
 	end
 
 	self:set_location(path)
+end
+
+function Client:remove_note(path)
+	path = path or vim.api.nvim_buf_get_name(0)
+
+	if path == self.config.root then
+		vim.notify("You can't delete the root note", vim.log.levels.INFO)
+		return
+	end
+
+	vim.ui.input(
+		{ prompt = "Are you sure you want to remove ("..path..") this note? [Y/N]: " },
+		function (input)
+			if string.upper(input) == "Y" then
+				self.history:pop()
+				self:set_location(self.history:last(), true)
+				os.remove(path)
+			end
+		end
+	)
 end
 
 return Client

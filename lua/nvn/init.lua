@@ -94,6 +94,31 @@ local function register(client)
 		end,
 		{ desc = "Go to the previous page in the history" }
 	)
+
+	vim.api.nvim_create_user_command(
+		'NvnDeleteNote',
+		function (opts)
+			client:remove_note(opts.fargs[1] or nil)
+		end,
+		{
+			desc = "Delete a note",
+			nargs = "?",
+			complete = function ()
+				return vim.fs.find(function (name, _)
+					return name:find(".md$")
+				end, {
+					limit = math.huge
+				})
+			end
+		}
+	)
+
+	vim.api.nvim_create_user_command(
+		'NvnCreateNote',
+		function (opts)
+			client:create_note(opts.fargs[1], opts.fargs[2], opts.fargs[3])
+		end, { desc = "Create a note", nargs = 1 }
+	)
 end
 
 nvn.setup = function (opts)
