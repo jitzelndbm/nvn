@@ -24,8 +24,8 @@ local function close_other_buffers(new_location, auto_save)
 	for _, buf in pairs(vim.api.nvim_list_bufs()) do
 		local buf_name = vim.api.nvim_buf_get_name(buf)
 
-		-- Skip the scratch buffer
-		if buf_name == "" then
+		-- Skip the scratch buffer and telescope
+		if buf_name == "" or buf_name == "TelescopePrompt" or buf_name == "Prompt" then
 			goto continue
 		end
 
@@ -137,18 +137,47 @@ function Client:get_links_from_file(full_path)
 	end
 
 	vim.api.nvim_buf_call(0, function ()
-	if full_path then
+		if full_path then
 			vim.cmd.edit(file_to_check)
 		end
 
 		links = find_links_in_current_buf()
 
-	if full_path then
+		if full_path then
 			vim.api.nvim_buf_delete(0, {})
 		end
 	end)
 
 	return links
+end
+
+function Client:new_note(path)
+	local template = Template:new(self.config.root, self.config.templates.dir)
+
+	if not template then
+		return
+	end
+
+	local title = vim.fs.basename(path)
+			:gsub(".md$", "")
+			:gsub("-", " ")
+			:gsub("(%a)([%w_']*)", function (first, rest)
+				return first:upper()..rest:lower()
+			end)
+
+	local file_content = template:render({
+		path = path,
+		title = title
+	})
+
+	-- write template output to the file
+	vim.api.nvim_buf_call(0, function ()
+		vim.cmd.edit(path)
+		vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.fn.split(file_content, "\n"))
+		vim.cmd.write(path)
+	end)
+
+	self:set_location(path)
 end
 
 return Client

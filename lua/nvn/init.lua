@@ -2,6 +2,7 @@ local nvn = {}
 
 require 'nvn.link'
 require 'nvn.client'
+require 'nvn.template'
 
 local default_opts = {
 	root = "dx/notes/index.md",
@@ -31,7 +32,7 @@ local default_opts = {
 		enabled = true,
 
 		-- Directory where templates are stored
-		dir = ""
+		dir = "templates"
 	},
 
 	dates = {
@@ -41,6 +42,7 @@ local default_opts = {
 }
 
 local function register(client)
+
 	vim.api.nvim_create_user_command(
 		'NvnNextLink',
 		function ()
@@ -92,7 +94,6 @@ local function register(client)
 		end,
 		{ desc = "Go to the previous page in the history" }
 	)
-
 end
 
 nvn.setup = function (opts)
