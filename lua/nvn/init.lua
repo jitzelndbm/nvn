@@ -72,7 +72,9 @@ local function register(client)
 
 			if node_type == 'shortcut_link' or node_type == 'inline_link' then
 				link = Link:new(node, file_name)
-			elseif node_type == 'link_text' or node_type == 'link_description' then
+			elseif node_type == 'link_text' or
+				node_type == 'link_destination' or
+				node_type == 'link_title' then
 				link = Link:new(node:parent(), file_name)
 			end
 
