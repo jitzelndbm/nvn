@@ -24,12 +24,12 @@ local default_opts = {
 		hide_numbers = false,
 
 		-- Enable markdown header folding
-		folding = true,
+		folding = false,
 	},
 
 	templates = {
 		-- Wheter to enable templates or not  
-		enabled = true,
+		enabled = false,
 
 		-- Directory where templates are stored
 		dir = "templates"
@@ -118,6 +118,13 @@ local function register(client)
 		function (opts)
 			client:create_note(opts.fargs[1], opts.fargs[2], opts.fargs[3])
 		end, { desc = "Create a note", nargs = 1 }
+	)
+
+	vim.api.nvim_create_user_command(
+		'NvnEval',
+		function (opts)
+			client:eval(opts.fargs[1])
+		end, { desc = 'Evaluate lua expressions in file', nargs = "?" }
 	)
 end
 

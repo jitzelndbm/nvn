@@ -32,7 +32,6 @@ local function close_other_buffers(new_location, auto_save)
 		if buf_name ~= new_location
 			and vim.api.nvim_buf_is_loaded(buf) then
 			if auto_save then
-				vim.print(buf_name)
 				vim.cmd.write(buf_name)
 				vim.api.nvim_buf_delete(buf, {})
 			else
@@ -151,7 +150,7 @@ function Client:get_links_from_file(full_path)
 	return links
 end
 
-local function find_relative_path(to_path, from_path)
+local function find_relative_path(from_path, to_path)
 	local relative_path = ""
 	local to_basename = vim.fs.basename(to_path)
 
@@ -243,6 +242,52 @@ function Client:remove_note(path)
 			end
 		end
 	)
+end
+
+function Client:eval(path)
+	if path then
+		-- FIXME: normalize() doesn't work with ../ and ./ patterns yet
+		-- This will be updated in v0.10
+		path = vim.fs.dirname(self.config.root) .. "/" .. vim.fs.normalize(path)
+	end
+
+	vim.api.nvim_buf_call(0, function ()
+		if path and vim.api.nvim_buf_get_name(0) ~= path then
+			vim.cmd.edit(path)
+		end
+
+		local language_tree = vim.treesitter.get_parser(0, "markdown")
+		local syntax_tree = language_tree:parse()
+		local root = syntax_tree[1]:root()
+
+		local code_block_query = vim.treesitter.query.parse(
+			"markdown", [[(fenced_code_block) @id]]
+		)
+
+		local captured_code_blocks = code_block_query:iter_captures(root, 0)
+
+		for _, code_block, _ in captured_code_blocks do
+			local info_string = vim.treesitter.get_node_text(code_block:child(1), 0)
+			if info_string ~= "lua, eval" and info_string ~= "lua,eval" then
+				goto continue
+			end
+
+			local src_node = code_block:child(3)
+			local _, _, end_row, _ = src_node:range()
+
+			local src_text = vim.treesitter.get_node_text(src_node, 0)
+			vim.api.nvim_buf_set_lines(0,
+				end_row + 1, end_row + 1, false,
+				vim.fn.split(loadstring(src_text)(), "\n"))
+
+			::continue::
+		end
+
+		if path and vim.api.nvim_buf_get_name(0) ~= path then
+			vim.cmd.write(path)
+			vim.api.nvim_buf_delete(0, {})
+		end
+	end)
 end
 
 return Client

@@ -16,11 +16,21 @@ function Template:new(root, templates_dir)
 		table.insert(template_files, template)
 	end
 
-	vim.ui.select(template_files, {
-		prompt = '',
-	}, function(choice)
-		self.file = choice
-	end)
+	-- FIXME: should use vim.ui.select(), but most implementations 
+	-- aren't blocking / synchronously. This might be added to a 
+	-- future update of neovim, in that case use this:
+	--
+	--vim.ui.select(template_files, {
+	--	prompt = 'Select a Template',
+	--}, function(choice)
+	--	self.file = choice
+	--end)
+
+	require 'mini.pick'.setup{}
+	self.file = MiniPick.start({
+		source = { items = template_files },
+		window = { prompt_prefix = "Choose a template > " },
+	})
 
 	if not self.file then
 		return
