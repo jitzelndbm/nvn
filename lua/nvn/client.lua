@@ -147,6 +147,10 @@ function Client:get_links_from_file(full_path)
 		end
 	end)
 
+	if full_path then
+		vim.cmd.edit(self.config.root)
+	end
+
 	return links
 end
 
@@ -288,6 +292,103 @@ function Client:eval(path)
 			vim.api.nvim_buf_delete(0, {})
 		end
 	end)
+end
+
+local function from_relative_to_absolute(note_file, rel_path)
+	local note_dir_parts = vim.fn.split(vim.fs.dirname(note_file), "/")
+	local relative_dir_parts = vim.fn.split(rel_path, "/")
+
+	for _, part in ipairs(relative_dir_parts) do
+		if part == ".." then
+			table.remove(note_dir_parts, #note_dir_parts)
+		elseif part ~= "." then
+			table.insert(note_dir_parts, part)
+		end
+	end
+
+	if note_dir_parts[1] == "." then
+		table.remove(note_dir_parts, 1)
+	end
+
+	return vim.fn.join(note_dir_parts, "/")
+end
+local function arrays_equal(array1, array2)
+    if #array1 ~= #array2 then
+        return false
+    end
+    for i, v in ipairs(array1) do
+        if type(v) == "table" then
+            if not arrays_equal(v, array2[i]) then
+                return false
+            end
+        elseif v ~= array2[i] then
+            return false
+        end
+    end
+    return true
+end
+local function insert_unique(array, item)
+    for _, value in ipairs(array) do
+        if type(value) == "table" and type(item) == "table" then
+            if arrays_equal(value, item) then
+                return false
+            end
+        elseif value == item then
+            return false
+        end
+    end
+    table.insert(array, item)
+    return true
+end
+function Client:open_graph()
+	local files = vim.fs.find(function (name, path)
+		return name:find(".md$") and not path:find(self.config.templates.dir)
+	end, {limit=math.huge, type="file"})
+
+	local links = {}
+	for _, file in pairs(files) do
+		local file_name = file:gsub(vim.fs.dirname(self.config.root).."/", "")
+		local found_links = self:get_links_from_file(file_name)
+
+		if not found_links then
+			goto continue
+		end
+
+		for _, link in pairs(found_links) do
+			table.insert(links, link)
+		end
+
+		::continue::
+	end
+
+	local nodes = {}
+	local edges = {}
+	for _, link in pairs(links) do
+			local note_file = link.file:gsub(vim.fs.dirname(self.config.root).."/", "")
+		if string.find(link.url, "https://") or string.find(link.url, "http://") then
+			insert_unique(nodes, link.url)
+			insert_unique(edges, { note_file, link.url })
+		else
+			insert_unique(nodes, note_file)
+			insert_unique(edges, {note_file, from_relative_to_absolute(note_file, link.url)})
+		end
+	end
+
+	local jd = "["
+	for _, node in pairs(nodes) do
+		jd = jd .. '"' .. node .. '",'
+	end
+	jd = jd .. "],["
+	for _, edge in pairs(edges) do
+		jd = jd ..
+		'["' ..
+		edge[1] .. '","' ..
+		edge[2] .. '"' ..
+		'],'
+	end
+	jd = jd .. "]"
+
+	vim.print(jd)
 end
 
 return Client

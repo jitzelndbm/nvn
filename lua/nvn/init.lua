@@ -128,6 +128,13 @@ local function register(client)
 			client:eval(opts.fargs[1])
 		end, { desc = 'Evaluate lua expressions in file', nargs = "?" }
 	)
+
+	vim.api.nvim_create_user_command(
+		'NvnOpenGraph',
+		function ()
+			client:open_graph()
+		end, {}
+	)
 end
 
 nvn.setup = function (opts)
