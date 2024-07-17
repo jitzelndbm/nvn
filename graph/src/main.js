@@ -8,14 +8,39 @@ export default function myGraph(nodes, edges) {
 	// Create a graphology graph
 	const graph = new MultiGraph();
 
-	let i = 0;
 	nodes.forEach(el => {
-		graph.addNode(el, { label: "Note", x: i, y: i, size: 10, color: "blue" });
-		i++;
+		let indentation = (el.match(new RegExp("/", "g")) || []).length
+		let color = "blue";
+		let label = el;
+		let size = 10;
+
+		if (el.startsWith("https://") || el.startsWith("http://")) {
+			color = "red";
+		};
+
+		if (el.endsWith("/index.md")) {
+			label = el.slice(0, -8);
+			color = "green";
+		}
+
+		if (el == "index.md") {
+			color = "black";
+			size = 12;
+		}
+
+		if (!label.endsWith("/")) {
+			indentation += 1;
+		}
+
+		if (indentation != 0) {
+			size *= (2/indentation);
+		}
+
+		graph.addNode(el, { label, x: Math.random() * 100, y: Math.random() * 100, size, color, labelColor: "white" });
 	});
 
 	edges.forEach(el => {
-		graph.addEdge(el[0], el[1], { size: 1, color: "purple" });
+		graph.addEdge(el[0], el[1], { size: 1, color: "darkgray" });
 	});
 
 	// Create the spring layout and start it
@@ -60,5 +85,10 @@ export default function myGraph(nodes, edges) {
 
 		isDragging = false;
 		draggedNode = null;
+	});
+
+	// Disable the autoscale at the first down interaction
+	renderer.getMouseCaptor().on("mousedown", () => {
+		if (!renderer.getCustomBBox()) renderer.setCustomBBox(renderer.getBBox());
 	});
 }

@@ -15,7 +15,7 @@ function Link:new(node, file)
 		obj.title = nil
 		obj.url = vim.treesitter.get_node_text(node:child(1), 0)
 	else
-		vim.notify("link: error while parsing", vim.log.levels.ERROR)
+		vim.notify('link: error while parsing', vim.log.levels.ERROR)
 		return nil
 	end
 
@@ -29,24 +29,22 @@ end
 
 function Link:handle(client)
 	if getmetatable(client) ~= Client then
-		vim.notify("link: invalid client", vim.log.levels.ERROR)
+		vim.notify('link: invalid client', vim.log.levels.ERROR)
 		return nil
 	end
 
-	if not self.url:find(".md$") then
+	if not self.url:find '.md$' then
 		-- FIXME: Replace with vim.ui.open when v0.10 is out
 		--vim.ui.open(vim.fn.shellescape(self.url))
-		os.execute('xdg-open ' .. vim.fn.shellescape(self.url) .. "&")
+		os.execute('xdg-open ' .. vim.fn.shellescape(self.url) .. '&')
 		return
 	end
 
-	-- FIXME: when neovim is updated to v0.10 update this section 
+	-- FIXME: when neovim is updated to v0.10 update this section
 	-- to use vim.fs.joinpath instead of vim.cmd.simplify
-	local path = vim.fn.simplify(vim.fs.dirname(self.file).."/"..self.url)
+	local path = vim.fn.simplify(vim.fs.dirname(self.file) .. '/' .. self.url)
 
-	if #(vim.fs.find(function (name, found_path)
-		return found_path.."/"..name == path
-	end, { limit = 1 })) == 0 then
+	if #(vim.fs.find(function(name, found_path) return found_path .. '/' .. name == path end, { limit = 1 })) == 0 then
 		client:create_note(path, self.file, self.title)
 	else
 		client:set_location(path)
