@@ -263,7 +263,7 @@ function Client:eval(path)
 			local _, _, end_row, _ = src_node:range()
 			local src_text = vim.treesitter.get_node_text(src_node, 0)
 
-			vim.api.nvim_buf_set_lines(0, end_row + 1, end_row + 1, false, vim.fn.split(loadstring(src_text)(), '\n\n'))
+			vim.api.nvim_buf_set_lines(0, end_row + 1, end_row + 1, false, vim.fn.split(loadstring(src_text)(), '\n'))
 
 			::continue::
 		end
