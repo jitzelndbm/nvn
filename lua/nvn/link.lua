@@ -34,15 +34,15 @@ function Link:handle(client)
 	end
 
 	if not self.url:find '.md$' then
-		-- FIXME: Replace with vim.ui.open when v0.10 is out
-		--vim.ui.open(vim.fn.shellescape(self.url))
-		os.execute('xdg-open ' .. vim.fn.shellescape(self.url) .. '&')
+		vim.ui.open(self.url)
+		-- NOTE: This is the old version which is compatible with older versions. (< v0.10)
+		--os.execute('xdg-open ' .. vim.fn.shellescape(self.url) .. '&')
 		return
 	end
 
-	-- FIXME: when neovim is updated to v0.10 update this section
-	-- to use vim.fs.joinpath instead of vim.cmd.simplify
-	local path = vim.fn.simplify(vim.fs.dirname(self.file) .. '/' .. self.url)
+	-- NOTE: This is the old version, compatible with older versions
+	--local path = vim.fn.simplify(vim.fs.dirname(self.file) .. '/' .. self.url)
+	local path = vim.fs.normalize(vim.fs.joinpath(vim.fs.dirname(self.file), self.url))
 
 	if #(vim.fs.find(function(name, found_path) return found_path .. '/' .. name == path end, { limit = 1 })) == 0 then
 		client:create_note(path, self.file, self.title)

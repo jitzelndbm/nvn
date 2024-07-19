@@ -236,7 +236,7 @@ function Client:eval(path)
 	if path then
 		-- FIXME: normalize() doesn't work with ../ and ./ patterns yet
 		-- This will be updated in v0.10
-		path = vim.fs.dirname(self.config.root) .. '/' .. vim.fs.normalize(path)
+		path = vim.fs.normalize(vim.fs.dirname(self.config.root) .. '/' .. path)
 	end
 
 	vim.api.nvim_buf_call(0, function()
