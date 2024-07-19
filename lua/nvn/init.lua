@@ -29,10 +29,18 @@ local default_opts = {
 
 	templates = {
 		-- Wheter to enable templates or not
-		enabled = false,
+		enabled = true,
 
 		-- Directory where templates are stored
 		dir = 'templates',
+	},
+
+	assets = {
+		-- Enable the assets url proctol
+		enabled = true,
+
+		-- Where the assets are stored relative to the root
+		dir = 'assets',
 	},
 
 	dates = {

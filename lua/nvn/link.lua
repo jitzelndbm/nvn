@@ -28,9 +28,16 @@ function Link:new(node, file)
 end
 
 function Link:handle(client)
+	-- TODO: Add support for footnotes
+
 	if getmetatable(client) ~= Client then
 		vim.notify('link: invalid client', vim.log.levels.ERROR)
 		return nil
+	end
+
+	if self.url:find '^assets://' then
+		vim.ui.open(vim.fs.normalize(vim.fs.joinpath(vim.fs.dirname(client.config.root), 'assets', self.url:sub(10))))
+		return
 	end
 
 	if not self.url:find '.md$' then
