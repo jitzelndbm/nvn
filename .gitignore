@@ -1,3 +1,7 @@
+# Js
 graph/node_modules/
 graph/build/
+
+# Nix
 result
+.direnv

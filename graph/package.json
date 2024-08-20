@@ -1,28 +1,28 @@
 {
-	"name": "nvn_graph",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
-	"type": "module",
-	"scripts": {
-		"build": "rollup -c",
-		"dev": "rollup -c -w"
-	},
-	"author": "",
-	"license": "ISC",
-	"dependencies": {
-		"graphology": "^0.25.4",
-		"graphology-layout-force": "^0.2.4",
-		"obliterator": "^2.0.4",
-		"sigma": "^3.0.0-beta.18"
-	},
-	"devDependencies": {
-		"@rollup/plugin-babel": "^6.0.4",
-		"@rollup/plugin-commonjs": "^25.0.7",
-		"@rollup/plugin-html": "^1.0.3",
-		"@rollup/plugin-node-resolve": "^15.2.3",
-		"@rollup/plugin-terser": "^0.4.4",
-		"rollup": "^4.17.2",
-		"rollup-plugin-polyfill-node": "^0.13.0"
-	}
+  "name": "nvn_graph",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "graphology": "^0.25.4",
+    "graphology-layout-force": "^0.2.4",
+    "obliterator": "^2.0.4",
+    "sigma": "^3.0.0-beta.18"
+  },
+  "devDependencies": {
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-html": "^1.0.3",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.17.2",
+    "rollup-plugin-polyfill-node": "^0.13.0"
+  }
 }
