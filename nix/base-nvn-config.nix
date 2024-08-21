@@ -11,6 +11,12 @@
     };
   };
   plugins.transparent.enable = true;
+  plugins.mini = {
+    enable = true;
+    modules = {
+      pick = {};
+    };
+  };
   plugins.fidget = {
     enable = true;
     notification.overrideVimNotify = true;
