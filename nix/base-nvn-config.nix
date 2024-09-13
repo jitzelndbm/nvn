@@ -7,14 +7,17 @@
     settings = {
       highlight.enable = true;
       indent.enable = true;
-      ensure_installed = ["markdown" "markdown_inline"];
+      ensure_installed = [
+        "markdown"
+        "markdown_inline"
+      ];
     };
   };
   plugins.transparent.enable = true;
   plugins.mini = {
     enable = true;
     modules = {
-      pick = {};
+      pick = { };
     };
   };
   plugins.fidget = {
@@ -32,9 +35,7 @@
     enable = true;
     autoEnableSources = true;
     settings = {
-      sources = [
-        {name = "path";}
-      ];
+      sources = [ { name = "path"; } ];
       mapping = {
         "<CR>" = "cmp.mapping.confirm({ select = true })";
         "<C-Space>" = "cmp.mapping.complete()";
@@ -68,7 +69,10 @@
   #################################################################
   autoCmd = [
     {
-      event = ["BufEnter" "BufWinEnter"];
+      event = [
+        "BufEnter"
+        "BufWinEnter"
+      ];
       command = "set syntax=markdown";
       pattern = "*.md";
     }

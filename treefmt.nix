@@ -1,7 +1,8 @@
-{...}: {
+{ ... }:
+{
   projectRootFile = "flake.nix";
   programs = {
-    alejandra.enable = true;
+    nixfmt.enable = true;
     prettier.enable = true;
     stylua.enable = true;
   };

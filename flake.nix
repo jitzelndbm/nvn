@@ -9,86 +9,93 @@
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
-  outputs = inputs @ {
-    self,
-    nixpkgs,
-    nixvim,
-    treefmt-nix,
-    ...
-  }: let
-    name = "nvn";
-    systems = ["x86_64-linux"];
-    eachSystem = f: let
-      forAllSystems = nixpkgs.lib.genAttrs systems;
-    in
-      forAllSystems (
-        system:
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      nixvim,
+      treefmt-nix,
+      ...
+    }:
+    let
+      name = "nvn";
+      systems = [ "x86_64-linux" ];
+      eachSystem =
+        f:
+        let
+          forAllSystems = nixpkgs.lib.genAttrs systems;
+        in
+        forAllSystems (
+          system:
           f {
             inherit system;
-            pkgs = import nixpkgs {inherit system;};
+            pkgs = import nixpkgs { inherit system; };
           }
-      );
-  in {
-    formatter = eachSystem (
-      {
-        pkgs,
-        system,
-      }: let
-        treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-      in
+        );
+    in
+    {
+      formatter = eachSystem (
+        { pkgs, system }:
+        let
+          treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+        in
         treefmtEval.config.build.wrapper
-    );
+      );
 
-    checks = eachSystem (
-      {
-        pkgs,
-        system,
-      }: let
-        treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-      in {
-        formatting = treefmtEval.config.build.check self;
-      }
-    );
+      checks = eachSystem (
+        { pkgs, system }:
+        let
+          treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+        in
+        {
+          formatting = treefmtEval.config.build.check self;
+        }
+      );
 
-    #################################################################
+      #################################################################
 
-    devShells = eachSystem ({
-      pkgs,
-      system,
-    }: {
-      default = pkgs.mkShell {
-        buildInputs = with pkgs; [stylua luajit lua-language-server];
-      };
-    });
+      devShells = eachSystem (
+        { pkgs, system }:
+        {
+          default = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              stylua
+              luajit
+              lua-language-server
+            ];
+          };
+        }
+      );
 
-    #################################################################
+      #################################################################
 
-    packages = eachSystem ({
-      pkgs,
-      system,
-    }: let
-      lib = import ./nix/lib {
-        inherit pkgs name;
-        nixvim = nixvim.legacyPackages.${system};
-        src = self;
-      };
-    in {
-      default = lib.mkNvnWithDefaults;
-      plugin = lib.mkPlugin;
-    });
+      packages = eachSystem (
+        { pkgs, system }:
+        let
+          lib = import ./nix/lib {
+            inherit pkgs name;
+            nixvim = nixvim.legacyPackages.${system};
+            src = self;
+          };
+        in
+        {
+          default = lib.mkNvnWithDefaults;
+          plugin = lib.mkPlugin;
+        }
+      );
 
-    apps = eachSystem ({
-      pkgs,
-      system,
-    }: {
-      default = {
-        type = "app";
-        program = "${self.packages.${system}.default}/bin/${name}";
-      };
-    });
+      apps = eachSystem (
+        { pkgs, system }:
+        {
+          default = {
+            type = "app";
+            program = "${self.packages.${system}.default}/bin/${name}";
+          };
+        }
+      );
 
-    #################################################################
+      #################################################################
 
-    homeManagerModules.${name} = import ./nix/hm.nix self;
-  };
+      homeManagerModules.${name} = import ./nix/hm.nix self;
+    };
 }

@@ -1,49 +1,15 @@
-# {
-#    root = (builtins.getEnv "HOME") + "/Documents/Notes/index.md";
-#
-#    behaviour = {
-#      strict_closing = false;
-#      automatic_creation = false;
-#      auto_save = true;
-#    };
-#
-#    appearance = {
-#      folding = true;
-#      hide_numbers = false;
-#    };
-#
-#    templates = {
-#      enable = true;
-#      dir = "templates";
-#    };
-#
-#    dates = {
-#      enable = true;
-#    };
-#
-#    keys = {
-#      leader = " ";
-#      map = {
-#        createNote = "<leader>C";
-#        deleteNote = "<leader>D";
-#        eval = "<leader>E";
-#        followLink = "<CR>";
-#        gotoPrevious = "<Backspace>";
-#        nextLink = "<Tab>";
-#        openGraph = "<leader>O";
-#        previousLink = "<S-Tab>";
-#      };
-#    };
-#  };
-self: {
+self:
+{
   config,
   lib,
   pkgs,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.programs.nvn;
-in {
+in
+{
   options.programs.nvn = {
     enable = mkEnableOption "nvn - neovim notes";
     package = mkOption {
@@ -73,21 +39,42 @@ in {
     extraSettings = mkOption {
       type = types.attrsOf (types.anything);
       description = "Extra Nixvim options";
-      default = {};
+      default = { };
+    };
+    keys = {
+      leader = mkOption {
+        type = types.str;
+        description = "This is the key that precedes all Nvn shortcuts";
+      };
+      map = {
+        createNote = mkOption { type = types.str; };
+        deleteNote = mkOption { type = types.str; };
+        eval = mkOption { type = types.str; };
+        followLink = mkOption { type = types.str; };
+        gotoPrevious = mkOption { type = types.str; };
+        nextLink = mkOption { type = types.str; };
+        openGraph = mkOption { type = types.str; };
+        previousLink = mkOption { type = types.str; };
+      };
     };
   };
 
   config = lib.mkIf cfg.enable {
     home.packages = [
       # NOTE: dankjewel yolanthe <3
-      (cfg.package.override
-        {
-          root = cfg.root;
-          extraSettings = cfg.extraSettings;
-          behaviour = with cfg.behaviour; {inherit strictClosing automaticCreation autoSave;};
-          appearance = with cfg.appearance; {inherit folding hideNumbers;};
-          templates = with cfg.templates; {inherit enable dir;};
-        })
+      (cfg.package.override {
+        root = cfg.root;
+        extraSettings = cfg.extraSettings;
+        behaviour = with cfg.behaviour; {
+          inherit strictClosing automaticCreation autoSave;
+        };
+        appearance = with cfg.appearance; {
+          inherit folding hideNumbers;
+        };
+        templates = with cfg.templates; {
+          inherit enable dir;
+        };
+      })
     ];
   };
 }

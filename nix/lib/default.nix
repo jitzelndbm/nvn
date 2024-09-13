@@ -3,18 +3,16 @@
   nixvim,
   src,
   name,
-}: let
+}:
+let
   inherit (pkgs.lib) makeOverridable;
 
-  mkPlugin = pkgs.vimUtils.buildVimPlugin {inherit name src;};
+  mkPlugin = pkgs.vimUtils.buildVimPlugin { inherit name src; };
 
-  boolToStr = bool:
-    if bool
-    then "true"
-    else "false";
+  boolToStr = bool: if bool then "true" else "false";
 
   mkPluginConfig = settings: {
-    extraPlugins = [mkPlugin];
+    extraPlugins = [ mkPlugin ];
 
     extraConfigLua =
       #lua
@@ -88,13 +86,14 @@
     ];
   };
 
-  mkNvnWithoutDefaults = settings:
+  mkNvnWithoutDefaults =
+    settings:
     pkgs.symlinkJoin {
       inherit name;
       paths = [
-        (((nixvim.makeNixvim (import ../base-nvn-config.nix))
-          .extend (mkPluginConfig settings))
-        .extend (settings.extraSettings))
+        (((nixvim.makeNixvim (import ../base-nvn-config.nix)).extend (mkPluginConfig settings)).extend (
+          settings.extraSettings
+        ))
       ];
       postBuild = ''
         rm -f $out/bin/nvim-python3 $out/bin/nixvim-print-init
@@ -140,8 +139,9 @@
       };
     };
 
-    extraSettings = {};
+    extraSettings = { };
   };
-in {
+in
+{
   inherit mkPlugin mkNvnWithoutDefaults mkNvnWithDefaults;
 }
