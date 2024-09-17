@@ -32,11 +32,15 @@
     colorscheme = "classic-dark";
   };
 
+  plugins.cmp_luasnip.enable = true;
   plugins.cmp = {
     enable = true;
     autoEnableSources = true;
     settings = {
-      sources = [ { name = "path"; } ];
+      sources = [
+        { name = "path"; }
+        { name = "luasnip"; }
+      ];
       mapping = {
         "<CR>" = "cmp.mapping.confirm({ select = true })";
         "<C-Space>" = "cmp.mapping.complete()";
@@ -45,23 +49,34 @@
         "<C-f>" = "cmp.mapping.scroll_docs(4)";
         "<S-Tab>" = ''
           cmp.mapping(function(fallback)
+             local luasnip = require("luasnip")
              if cmp.visible() then
-                 cmp.select_prev_item()
+               cmp.select_prev_item()
+             elseif luasnip.locally_jumpable(-1) then
+               luasnip.jump(-1)
              else
-                 fallback()
+               fallback()
              end
           end, { 'i', 's' })
         '';
         "<Tab>" = ''
           cmp.mapping(function(fallback)
-             if cmp.visible() then
-                 cmp.select_next_item()
-             else
-                 fallback()
-             end
+            local luasnip = require("luasnip")
+            if cmp.visible() then
+              cmp.select_next_item()
+            elseif luasnip.expand_or_locally_jumpable() then
+              luasnip.expand_or_jump()
+            else
+              fallback()
+            end
           end, { 'i', 's' })
         '';
       };
+      snippet.expand = ''
+        function(args)
+          require('luasnip').lsp_expand(args.body)
+        end
+      '';
     };
   };
 
