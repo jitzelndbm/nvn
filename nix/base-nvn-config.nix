@@ -13,6 +13,7 @@
       ];
     };
   };
+  plugins.luasnip.enable = true;
   plugins.transparent.enable = true;
   plugins.mini = {
     enable = true;
