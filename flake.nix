@@ -10,7 +10,7 @@
   };
 
   outputs =
-    inputs@{
+    {
       self,
       nixpkgs,
       nixvim,
@@ -35,7 +35,7 @@
     in
     {
       formatter = eachSystem (
-        { pkgs, system }:
+        { pkgs, ... }:
         let
           treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
         in
@@ -45,13 +45,19 @@
       #################################################################
 
       devShells = eachSystem (
-        { pkgs, system }:
+        { pkgs, ... }:
         {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
+              # Lua tools
               stylua
               luajit
               lua-language-server
+              luajitPackages.ldoc
+
+              # Nix
+              nixd
+              nixfmt-rfc-style
             ];
           };
         }
@@ -76,7 +82,7 @@
       );
 
       apps = eachSystem (
-        { pkgs, system }:
+        { system, ... }:
         {
           default = {
             type = "app";

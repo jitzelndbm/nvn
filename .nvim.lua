@@ -28,3 +28,14 @@ require('lspconfig').lua_ls.setup {
 		},
 	},
 }
+
+require('lspconfig').nixd.setup {
+	cmd = { 'nixd' },
+	settings = {
+		nixd = {
+			nixpkgs = {
+				expr = '(builtins.getFlake ".").inputs.nixpkgs { }',
+			},
+		},
+	},
+}
