@@ -5,7 +5,6 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixvim.url = "github:nix-community/nixvim";
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
@@ -13,7 +12,6 @@
     {
       self,
       nixpkgs,
-      nixvim,
       treefmt-nix,
       ...
     }:
@@ -66,17 +64,15 @@
       #################################################################
 
       packages = eachSystem (
-        { pkgs, system }:
+        { pkgs, ... }:
         let
           lib = import ./nix/lib {
             inherit pkgs name;
-            nixvim = nixvim.legacyPackages.${system};
             src = self;
           };
         in
         {
-          default = lib.mkNvnWithDefaults;
-          noNixVim = lib.mkNvnWithDefaultsFast;
+          default = lib.mkNvn;
           plugin = lib.mkPlugin;
         }
       );
