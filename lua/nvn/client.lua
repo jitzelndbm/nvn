@@ -16,6 +16,9 @@ function Client:new(config)
 	instance.history = History:new(config.root)
 	instance.hierarchy = Hierarchy:new()
 
+	-- Set working directory
+	vim.cmd.cd(vim.fs.dirname(config.root))
+
 	instance:set_location(config.root)
 
 	return instance
@@ -337,13 +340,16 @@ function Client:open_graph()
 	local edges = {}
 	for _, link in pairs(links) do
 		local note_file = link.file:gsub(vim.fs.dirname(self.config.root) .. '/', '')
-		if string.find(link.url, 'https://') or string.find(link.url, 'http://') then
+		if string.find(link.url, 'assets://') or string.sub(link.url, 1, 2) == '^' then
+			goto continue
+		elseif string.find(link.url, 'https://') or string.find(link.url, 'http://') then
 			insert_unique(nodes, link.url)
 			insert_unique(edges, { note_file, link.url })
 		else
 			insert_unique(nodes, note_file)
 			insert_unique(edges, { note_file, from_relative_to_absolute(note_file, link.url) })
 		end
+		::continue::
 	end
 
 	local jd = '['
@@ -357,7 +363,10 @@ function Client:open_graph()
 	jd = jd .. ']'
 
 	local project_root = vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p:h:h:h')
-	local html_file = project_root .. '/graph/index.html'
+	local html_file = os.getenv 'XDG_STATE_HOME' .. '/nvn/graph.html'
+	--vim.fn.mkdir(vim.fs.dirname(html_file))
+
+	vim.fn.input(vim.inspect(project_root))
 
 	local html_data = [[<!DOCTYPE html>
 <html lang="en">
@@ -365,7 +374,7 @@ function Client:open_graph()
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Nvn Graph</title>
-		<script src="./build/bundle.min.js"></script>
+		<script src="]] .. project_root .. '/graph/build/bundle.min.js' .. [["></script>
 	</head>
 	<body style="margin: 0">
 		<div id="container" style="width: 100vw; height: 100vh; background: white"></div>
@@ -383,8 +392,8 @@ function Client:open_graph()
 	file:close()
 
 	-- FIXME: Replace with vim.ui.open when v0.10 is out
-	--vim.ui.open(vim.fn.shellescape(self.url))
-	os.execute('xdg-open ' .. 'file://' .. html_file .. ' &')
+	vim.ui.open(vim.fn.shellescape(self.url))
+	--os.execute('xdg-open ' .. 'file://' .. html_file .. ' &')
 end
 
 return Client

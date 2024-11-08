@@ -42,16 +42,6 @@
         treefmtEval.config.build.wrapper
       );
 
-      checks = eachSystem (
-        { pkgs, system }:
-        let
-          treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-        in
-        {
-          formatting = treefmtEval.config.build.check self;
-        }
-      );
-
       #################################################################
 
       devShells = eachSystem (
@@ -80,6 +70,7 @@
         in
         {
           default = lib.mkNvnWithDefaults;
+          noNixVim = lib.mkNvnWithDefaultsFast;
           plugin = lib.mkPlugin;
         }
       );
