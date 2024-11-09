@@ -1,34 +1,48 @@
----Represents a note file
+local navigation = require("nvn.navigation")
+
+---Represents a note file, this class has the responsibility over the contents of a note. This class does not (or barely) interact with the file tree
 ---@class Note
----@field title string
 ---@field path Path
-
-local Path = require("nvn.path")
-local Template = require("nvn.template")
-
+---@field navigation Navigation
 local Note = {}
 Note.__index = Note
 
-function Note.new(path, title)
+---Constructor for the note class
+---@param path Path
+---@return Note
+function Note.new(path)
 	local self = setmetatable({}, Note)
 	self.path = path
-	self.title = title
-	return Note
+	self.navigation = navigation.new(self)
+	return self
 end
 
----This function makes sure that the path under the note is created/overwritten
----@param force boolean
+---Call function on a buffer
+---@param self Note
+---@param f function the function that will be executed on the buffer
+function Note:buf_call(f)
+	f = f or error("No callback function was provided")
+	local bufnr = vim.api.nvim_create_buf(false, false)
+	vim.api.nvim_buf_set_name(bufnr, self.path.full_path)
+	vim.api.nvim_buf_call(bufnr, f)
+end
+
+---This function will overwrite the content of a note, replac15ing it with a template
 ---@param template Template
-function Note:write(force, template)
+---@param force? boolean
+function Note:write_template(template, force)
+	force = force or false
 end
 
----Moves a note to a new location
----@param force boolean Overwrites the note under the new path
----@param new_path any 
-function Note:move(force, new_path)
-end
+---Overwrites the entire note with new content
+---@param ... string
+function Note:write(...)
+	local file = io.open(self.path.full_path, "w") or error("File could not be opened: " .. self.path.full_path)
 
-function Note:remove()
+	-- Create an array from the args, then join them with new lines and write to the file
+	file:write(vim.fn.join({...}, "\n"))
+
+	file:close()
 end
 
 function Note:evaluate()
@@ -37,8 +51,4 @@ end
 function Note:get_links()
 end
 
-function Note:buf_call(call)
-	local bufnr = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_name(bufnr, self.path.get_file_name())
-	vim.api.nvim_buf_call(bufnr, )
-end
+return Note
