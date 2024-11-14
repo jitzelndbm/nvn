@@ -78,6 +78,7 @@ makeNeovimConfig {
       {
         plugin = nvim-treesitter.withPlugins (p: [
           p.markdown
+					p.markdown_inline
           p.lua
         ]);
         config = toLua (setup "nvim-treesitter.configs" "highlight = { enable = true }");

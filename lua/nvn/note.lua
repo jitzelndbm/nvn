@@ -20,14 +20,15 @@ end
 ---Call function on a buffer
 ---@param self Note
 ---@param f function the function that will be executed on the buffer
+---@return any
 function Note:buf_call(f)
 	f = f or error("No callback function was provided")
-	local bufnr = vim.api.nvim_create_buf(false, false)
-	vim.api.nvim_buf_set_name(bufnr, self.path.full_path)
-	vim.api.nvim_buf_call(bufnr, f)
+	local status, err_or_value = pcall(vim.api.nvim_buf_call, 0, f)
+	if not status then error(err_or_value) end
+	return err_or_value
 end
 
----This function will overwrite the content of a note, replac15ing it with a template
+---This function will overwrite the content of a note, replacing it with a template
 ---@param template Template
 ---@param force? boolean
 function Note:write_template(template, force)
@@ -40,7 +41,7 @@ function Note:write(...)
 	local file = io.open(self.path.full_path, "w") or error("File could not be opened: " .. self.path.full_path)
 
 	-- Create an array from the args, then join them with new lines and write to the file
-	file:write(vim.fn.join({...}, "\n"))
+	file:write(vim.fn.join({ ... }, "\n"))
 
 	file:close()
 end

@@ -1,0 +1,1 @@
+---@alias error string

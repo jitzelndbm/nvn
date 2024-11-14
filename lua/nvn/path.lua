@@ -12,6 +12,7 @@ Path.__index = Path
 ---Create a new path from a full_path
 ---@param root string
 ---@param full_path string
+---@return Path?
 function Path.new_from_full(root, full_path)
 	local self = setmetatable({}, Path)
 

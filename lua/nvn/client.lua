@@ -14,7 +14,13 @@ Client.__index = Client
 function Client.new(config)
 	local self = setmetatable({}, Client)
 	self.config = config
-	self.current = note.new(path.new_from_full(config.root, config.root .. "/" .. config.index))
+	local status, path_or_err = pcall(path.new_from_full, config.root, config.root .. "/" .. config.index)
+	if status and path_or_err ~= nil then
+		self.current = note.new(path_or_err)
+	else
+		error(path_or_err)
+	end
+
 	return self
 end
 
