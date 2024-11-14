@@ -137,7 +137,7 @@ function Navigation:previous_link()
 end
 
 ---@param self Navigation
----@return Link?
+---@return Link
 function Navigation:current_link()
 	-- Get the node under the cursor
 	local node = vim.treesitter.get_node({ lang = 'markdown_inline' })

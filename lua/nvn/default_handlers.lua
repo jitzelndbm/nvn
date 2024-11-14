@@ -1,0 +1,42 @@
+---@module 'default_handlers'
+
+local default_handlers = {}
+
+---@param client Client
+---@param link Link
+default_handlers.markdown = function (client, link)
+	---@class Path
+	local Path = require("nvn.path")
+
+	---@class Note
+	local Note = require("nvn.note")
+
+	client:set_location(Note.new(Path.new_from_note(client.current, link.url)))
+end
+
+---@param client Client
+---@param link Link
+default_handlers.folder = function (client, link)
+	local joined = vim.fs.joinpath(link.url, client.config.index)
+	if vim.fn.filereadable(joined) then
+		---@class Path
+		local Path = require("nvn.path")
+		---@class Note
+		local Note = require("nvn.note")
+
+		client:set_location(Note.new(Path.new_from_full(client.config.root, joined)))
+	end
+end
+
+---@param link Link
+default_handlers.default = function (_, link)
+	vim.ui.open(link.url)
+end
+
+default_handlers.mapping = {
+	[".md$"] = default_handlers.markdown,
+	["/$"] = default_handlers.folder,
+	[0] = default_handlers.default
+}
+
+return default_handlers

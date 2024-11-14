@@ -3,5 +3,6 @@ aap
 [https://en.wikipedia.org]
 [another one](https://google.com)
 test
-[another one](https://google.com)
+[a](a.md)
+[gamer](gamer/)
 test

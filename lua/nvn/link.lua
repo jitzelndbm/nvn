@@ -1,3 +1,5 @@
+local default_handlers = require("nvn.default_handlers")
+
 ---This class represents a link in a markdown Note
 ---@class Link
 ---@field title string
@@ -41,6 +43,31 @@ end
 
 ---@param client Client
 function Link:follow(client)
+	local merged = {}
+
+	for pattern, func in pairs(client.config.handlers) do
+		merged[pattern] = func
+	end
+
+	for pattern, func in pairs(default_handlers.mapping) do
+		if merged[pattern] == nil then
+			merged[pattern] = func
+		end
+	end
+
+	---@type boolean
+	local found_handler = false
+	for pattern, handler in pairs(merged) do
+		if type(pattern) == "string" and self.url:find(pattern) then
+			vim.notify(("Using handler %s"):format(pattern))
+			handler(client, self)
+			found_handler = true
+			break
+		end
+	end
+
+	vim.notify("found_handler: " .. tostring(found_handler))
+	if not found_handler then merged[0](client, self) end
 end
 
 return Link

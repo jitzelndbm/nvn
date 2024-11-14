@@ -57,14 +57,25 @@ end
 
 --- Follows the link under the cursor if it is a link, otherwise this function puts <CR> into vim
 function Cli:follow_link()
-	local status, link = pcall(self.client.current.navigation.current_link, self)
-	if status and link ~= nil then
-		link:follow(self.client)
+	local status, link = xpcall(
+		self.client.current.navigation.current_link,
+		err.handler,
+		self.client.current.navigation,
+		self
+	)
+
+	if status then
+		local msg
+		status, msg = xpcall(link.follow, err.handler, link, self.client)
+		if not status then error("Following link failed" .. msg) end
 	else
+		--error("Link could not be found under cursor" .. link)
+		-- Handle the case that a link could not be found
 		vim.cmd('execute "normal! \\<CR>"')
 	end
 end
 
+---Go to the previously visited note
 --function Cli:goto_previous()
 --end
 
@@ -78,30 +89,17 @@ end
 --end
 
 function Cli:register_commands()
-	local function xpn(k,m)
+	local function xpn(k,m,a)
 		vim.api.nvim_create_user_command(k,function ()
-			local status, error = xpcall(m, err.handler, self)
+			local status, error = xpcall(m, err.handler, a)
 			if not status then err.print(error) end
 		end, {})
 	end
 
-	local n = vim.api.nvim_create_user_command
-
 	-- Register all commands
-	n("NvnPreviousLink", function()
-		local status, error = xpcall(self.previous_link, err.handler, self)
-		if not status then err.print(error) end
-	end, {})
-
-	n("NvnNextLink", function()
-		local status, error = xpcall(self.next_link, err.handler, self)
-		if not status then err.print(error) end
-	end, {})
-
-	n("NvnFollowLink", function()
-		local status, error = xpcall(self.follow_link, err.handler, self)
-		if not status then err.print(error) end
-	end, {})
+	xpn("NvnPreviousLink", self.previous_link, self)
+	xpn("NvnNextLink", self.next_link, self)
+	xpn("NvnFollowLink", self.follow_link, self)
 end
 
 return Cli

@@ -2,6 +2,9 @@
 ---@class Path
 ---@field full_path string
 ---@field rel_to_root string
+---
+---@field new_from_note function
+---@field new_from_full function
 
 local Path = {}
 Path.__index = Path
@@ -9,10 +12,20 @@ Path.__index = Path
 --function Path.new_from_rel_to_root(root, relative_path)
 --end
 
+---@param note Note
+---@param url string
+---@return Path
+function Path.new_from_note(note, url)
+	local self = setmetatable({}, Path)
+	self.full_path = vim.fs.joinpath(vim.fs.dirname(note.path.full_path), url)
+	self.rel_to_root = vim.fs.joinpath(vim.fs.dirname(note.path.rel_to_root), url)
+	return self
+end
+
 ---Create a new path from a full_path
 ---@param root string
 ---@param full_path string
----@return Path?
+---@return Path
 function Path.new_from_full(root, full_path)
 	local self = setmetatable({}, Path)
 
