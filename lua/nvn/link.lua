@@ -59,14 +59,12 @@ function Link:follow(client)
 	local found_handler = false
 	for pattern, handler in pairs(merged) do
 		if type(pattern) == "string" and self.url:find(pattern) then
-			vim.notify(("Using handler %s"):format(pattern))
 			handler(client, self)
 			found_handler = true
 			break
 		end
 	end
 
-	vim.notify("found_handler: " .. tostring(found_handler))
 	if not found_handler then merged[0](client, self) end
 end
 

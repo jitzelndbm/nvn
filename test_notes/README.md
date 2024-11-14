@@ -4,5 +4,5 @@ aap
 [another one](https://google.com)
 test
 [a](a.md)
-[gamer](gamer/)
+[This note does not exist](gamer/)
 test

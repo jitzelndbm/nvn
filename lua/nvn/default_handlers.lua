@@ -18,13 +18,15 @@ end
 ---@param link Link
 default_handlers.folder = function (client, link)
 	local joined = vim.fs.joinpath(link.url, client.config.index)
-	if vim.fn.filereadable(joined) then
+	if vim.fn.filereadable(joined) == 1 then
 		---@class Path
 		local Path = require("nvn.path")
 		---@class Note
 		local Note = require("nvn.note")
 
-		client:set_location(Note.new(Path.new_from_full(client.config.root, joined)))
+		---@type Path
+		local p = Path.new_from_note(client.current, joined)
+		client:set_location(Note.new(p))
 	end
 end
 

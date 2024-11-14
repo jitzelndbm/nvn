@@ -17,8 +17,8 @@ Path.__index = Path
 ---@return Path
 function Path.new_from_note(note, url)
 	local self = setmetatable({}, Path)
-	self.full_path = vim.fs.joinpath(vim.fs.dirname(note.path.full_path), url)
-	self.rel_to_root = vim.fs.joinpath(vim.fs.dirname(note.path.rel_to_root), url)
+	self.full_path = vim.fs.normalize(vim.fs.joinpath(vim.fs.dirname(note.path.full_path), url))
+	self.rel_to_root = vim.fs.normalize(vim.fs.joinpath(vim.fs.dirname(note.path.rel_to_root), url))
 	return self
 end
 
