@@ -1,5 +1,8 @@
-local note = require("nvn.note")
-local path = require("nvn.path")
+---@class Note
+local Note = require("nvn.note")
+
+---@class Path
+local Path = require("nvn.path")
 
 ---This class hold responsibility over the management of notes.
 ---@class Client
@@ -14,9 +17,9 @@ Client.__index = Client
 function Client.new(config)
 	local self = setmetatable({}, Client)
 	self.config = config
-	local status, path_or_err = pcall(path.new_from_full, config.root, config.root .. "/" .. config.index)
+	local status, path_or_err = pcall(Path.new_from_full, config.root, config.root .. "/" .. config.index)
 	if status and path_or_err ~= nil then
-		self.current = note.new(path_or_err)
+		self.current = Note.new(path_or_err)
 	else
 		error(path_or_err)
 	end

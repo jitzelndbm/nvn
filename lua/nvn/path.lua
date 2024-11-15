@@ -47,6 +47,13 @@ function Path.new_from_full(root, full_path)
 	return self
 end
 
+---Returns if a file exists under this path
+---@param self Path
+---@return boolean
+function Path:exists()
+	return vim.fn.filereadable(self.full_path) == 1
+end
+
 --function Path.rel_between(begin, end)
 --end
 --

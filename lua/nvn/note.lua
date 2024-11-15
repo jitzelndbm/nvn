@@ -1,4 +1,5 @@
-local navigation = require("nvn.navigation")
+---@class Navigation
+local Navigation = require("nvn.navigation")
 
 ---Represents a note file, this class has the responsibility over the contents of a note. This class does not (or barely) interact with the file tree
 ---@class Note
@@ -13,7 +14,7 @@ Note.__index = Note
 function Note.new(path)
 	local self = setmetatable({}, Note)
 	self.path = path
-	self.navigation = navigation.new(self)
+	self.navigation = Navigation.new(self)
 	return self
 end
 
