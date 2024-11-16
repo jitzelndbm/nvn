@@ -89,8 +89,8 @@ end
 --end
 
 function Cli:register_commands()
-	local function xpn(k,m,a)
-		vim.api.nvim_create_user_command(k,function ()
+	local function xpn(k, m, a)
+		vim.api.nvim_create_user_command(k, function()
 			local status, error = xpcall(m, err.handler, a)
 			if not status then err.print(error) end
 		end, {})

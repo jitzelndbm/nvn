@@ -22,7 +22,7 @@ makeNeovimConfig {
   withNodeJs = false;
   withRuby = false;
 
-	pname = "nvn";
+  pname = "nvn";
 
   luaRcContent =
     let
@@ -50,10 +50,10 @@ makeNeovimConfig {
         {
           inherit plugin;
           config = toLua (concatLines [
-						# Normal configuration
-						(setup "nvn" "")
+            # Normal configuration
+            (setup "nvn" "")
 
-						# Keymaps
+            # Keymaps
             (nmap keymaps.followLink "<cmd>NvnFollowLink<cr>")
             (nmap keymaps.nextLink "<cmd>NvnNextLink<cr>")
             (nmap keymaps.previousLink "<cmd>NvnPreviousLink<cr>")
@@ -78,7 +78,7 @@ makeNeovimConfig {
       {
         plugin = nvim-treesitter.withPlugins (p: [
           p.markdown
-					p.markdown_inline
+          p.markdown_inline
           p.lua
         ]);
         config = toLua (setup "nvim-treesitter.configs" "highlight = { enable = true }");

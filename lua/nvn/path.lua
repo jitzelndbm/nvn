@@ -17,8 +17,12 @@ Path.__index = Path
 ---@return Path
 function Path.new_from_note(note, url)
 	local self = setmetatable({}, Path)
-	self.full_path = vim.fs.normalize(vim.fs.joinpath(vim.fs.dirname(note.path.full_path), url))
-	self.rel_to_root = vim.fs.normalize(vim.fs.joinpath(vim.fs.dirname(note.path.rel_to_root), url))
+	self.full_path = vim.fs.normalize(
+		vim.fs.joinpath(vim.fs.dirname(note.path.full_path), url)
+	)
+	self.rel_to_root = vim.fs.normalize(
+		vim.fs.joinpath(vim.fs.dirname(note.path.rel_to_root), url)
+	)
 	return self
 end
 
@@ -33,9 +37,7 @@ function Path.new_from_full(root, full_path)
 	root = vim.fs.normalize(root)
 
 	-- Remove trailing slashes
-	if root:sub(-1) == "/" then
-        root = root:sub(1, -2)
-    end
+	if root:sub(-1) == "/" then root = root:sub(1, -2) end
 
 	if not full_path:sub(1, #root) == root then
 		error("The root could not be extracted from the full_path")
@@ -50,9 +52,7 @@ end
 ---Returns if a file exists under this path
 ---@param self Path
 ---@return boolean
-function Path:exists()
-	return vim.fn.filereadable(self.full_path) == 1
-end
+function Path:exists() return vim.fn.filereadable(self.full_path) == 1 end
 
 --function Path.rel_between(begin, end)
 --end

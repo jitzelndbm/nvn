@@ -18,19 +18,22 @@ function Link.new(node)
 
 	local type = node:type()
 
-	if not type == 'shortcut_link' or not type == 'inline_link' then
+	if not type == "shortcut_link" or not type == "inline_link" then
 		error("Could not construct a link form node type: " .. type)
 	end
 
-	self.shortcut = node:type() == 'shortcut_link'
+	self.shortcut = node:type() == "shortcut_link"
 	if self.shortcut then
-		local url_node = node:child(1) or error("The link url could not be found")
+		local url_node = node:child(1)
+			or error("The link url could not be found")
 		self.url = vim.treesitter.get_node_text(url_node, 0)
 	else
-		local title_node = node:child(1) or error("The link title could not be found")
+		local title_node = node:child(1)
+			or error("The link title could not be found")
 		self.title = vim.treesitter.get_node_text(title_node, 0)
 
-		local url_node = node:child(4) or error("The link url could not be found")
+		local url_node = node:child(4)
+			or error("The link url could not be found")
 		self.url = vim.treesitter.get_node_text(url_node, 0)
 	end
 
@@ -50,14 +53,13 @@ function Link:follow(client)
 	end
 
 	for pattern, func in pairs(default_handlers.mapping) do
-		if merged[pattern] == nil then
-			merged[pattern] = func
-		end
+		if merged[pattern] == nil then merged[pattern] = func end
 	end
 
 	---@type boolean
 	local found_handler = false
 	for pattern, handler in pairs(merged) do
+		-- FIXME: Maybe the order in which the handlers are examined should be an option as well.
 		if type(pattern) == "string" and self.url:find(pattern) then
 			handler(client, self)
 			found_handler = true

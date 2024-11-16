@@ -32,14 +32,13 @@ end
 ---This function will overwrite the content of a note, replacing it with a template
 ---@param template Template
 ---@param force? boolean
-function Note:write_template(template, force)
-	force = force or false
-end
+function Note:write_template(template, force) force = force or false end
 
 ---Overwrites the entire note with new content
 ---@param ... string
 function Note:write(...)
-	local file = io.open(self.path.full_path, "w") or error("File could not be opened: " .. self.path.full_path)
+	local file = io.open(self.path.full_path, "w")
+		or error("File could not be opened: " .. self.path.full_path)
 
 	-- Create an array from the args, then join them with new lines and write to the file
 	file:write(vim.fn.join({ ... }, "\n"))
@@ -47,10 +46,8 @@ function Note:write(...)
 	file:close()
 end
 
-function Note:evaluate()
-end
+function Note:evaluate() end
 
-function Note:get_links()
-end
+function Note:get_links() end
 
 return Note

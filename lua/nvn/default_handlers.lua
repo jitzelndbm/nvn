@@ -4,7 +4,7 @@ local default_handlers = {}
 
 ---@param client Client
 ---@param link Link
-default_handlers.markdown = function (client, link)
+default_handlers.markdown = function(client, link)
 	---@class Path
 	local Path = require("nvn.path")
 
@@ -16,7 +16,7 @@ end
 
 ---@param client Client
 ---@param link Link
-default_handlers.folder = function (client, link)
+default_handlers.folder = function(client, link)
 	local joined = vim.fs.joinpath(link.url, client.config.index)
 	if vim.fn.filereadable(joined) == 1 then
 		---@class Path
@@ -31,14 +31,12 @@ default_handlers.folder = function (client, link)
 end
 
 ---@param link Link
-default_handlers.default = function (_, link)
-	vim.ui.open(link.url)
-end
+default_handlers.default = function(_, link) vim.ui.open(link.url) end
 
 default_handlers.mapping = {
 	[".md$"] = default_handlers.markdown,
 	["/$"] = default_handlers.folder,
-	[0] = default_handlers.default
+	[0] = default_handlers.default,
 }
 
 return default_handlers
