@@ -1,4 +1,4 @@
----This class helps with working with paths
+--This class helps with working with paths
 ---@class Path
 ---@field full_path string
 ---@field rel_to_root string

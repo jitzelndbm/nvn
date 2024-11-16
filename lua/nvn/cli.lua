@@ -82,8 +82,11 @@ end
 --function Cli:delete_note()
 --end
 
---function Cli:evaluate()
---end
+function Cli:evaluate()
+	self.client.current:evaluate()
+	--local status, _ = xpcall(self.client.current.evaluate, err.handler, self.client.current)
+	--vim.notify(vim.inspect(status))
+end
 
 --function Cli:open_graph()
 --end
@@ -100,6 +103,7 @@ function Cli:register_commands()
 	xpn("NvnPreviousLink", self.previous_link, self)
 	xpn("NvnNextLink", self.next_link, self)
 	xpn("NvnFollowLink", self.follow_link, self)
+	xpn("NvnEval", self.evaluate, self)
 end
 
 return Cli

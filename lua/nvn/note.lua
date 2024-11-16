@@ -1,6 +1,17 @@
 ---@class Navigation
 local Navigation = require("nvn.navigation")
 
+---@class Path
+local Path = require("nvn.path")
+
+local BLOCK_QUERY = [[
+(fenced_code_block) @inside
+]]
+
+local EXTERNAL_QUERY = [[
+(html_block) @block
+]]
+
 ---Represents a note file, this class has the responsibility over the contents of a note. This class does not (or barely) interact with the file tree
 ---@class Note
 ---@field path Path
@@ -46,7 +57,95 @@ function Note:write(...)
 	file:close()
 end
 
-function Note:evaluate() end
+---Replace lines between
+---@param begin_line uinteger
+---@param end_line uinteger
+---@param lines string[]
+function Note:set_lines(begin_line, end_line, lines)
+	self:buf_call(function()
+		vim.api.nvim_buf_set_lines(0, begin_line, end_line, false, lines)
+	end)
+end
+
+function Note:evaluate()
+	self:buf_call(function()
+		-- First go over all code blocks
+		local markdown_root = vim.treesitter.get_parser(0, 'markdown'):parse()[1]:root()
+		local query = vim.treesitter.query.parse('markdown', BLOCK_QUERY)
+		local iter = query:iter_captures(markdown_root, 0)
+		for _, node in iter do
+			local lang_node = node:child(1)
+			if not lang_node then goto continue end
+
+			local lang = vim.treesitter.get_node_text(lang_node, 0)
+			if not (lang == 'lua,eval' or lang == 'lua, eval') then goto continue end
+
+			local src_node = node:child(3)
+			if not src_node then goto continue end
+
+			local src = vim.treesitter.get_node_text(src_node, 0)
+			local end_row, _, _ = src_node:end_();
+
+			local res = loadstring(src)()
+
+			if res then
+				self:set_lines(end_row + 1, end_row + 1, vim.fn.split(res, "\n"))
+			end
+			::continue::
+		end
+
+
+		-- Then go over comment lines, external sources
+		local html_root = vim.treesitter.get_parser(0, 'markdown'):parse()[1]:root()
+		query = vim.treesitter.query.parse('markdown', EXTERNAL_QUERY)
+		iter = query:iter_captures(html_root, 0)
+
+		---@type Path?
+		local path
+
+		---@type uinteger
+		local begin_row
+
+		for _, node in iter do
+			if path then
+				-- Close directive
+				local text = vim.treesitter.get_node_text(node, 0)
+				if not text == "<!-- NVN_EVAL: end -->" then goto continue end
+
+				local file = io.open(path.full_path, "r")
+				if not file then error("File from directive could not be found: '" .. path.full_path .. "'") end
+
+				local end_row, _, _ = node:end_()
+				local src = file:read("*a")
+
+				local res = loadstring(src)()
+				if res then
+					self:set_lines(begin_row + 1, end_row - 1, vim.fn.split(res, "\n"))
+				end
+
+				file:close()
+				path = nil
+			else
+				-- Open directive
+				local text = vim.treesitter.get_node_text(node, 0)
+				if not text:sub(1, 13) == "<!-- NVN_EVAL" then goto continue end
+
+				if text:sub(15, 17) == "end" then error("Unexpected end directive") end
+
+				local path_text = text:sub(15, -6)
+				path = Path.new_from_note(self, path_text)
+
+				begin_row, _, _ = node:start()
+			end
+
+			::continue::
+		end
+
+		if path then
+			error("A directive has not been closed")
+		end
+	end)
+end
 
 function Note:get_links() end
 
