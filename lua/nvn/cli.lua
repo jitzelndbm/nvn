@@ -83,9 +83,10 @@ end
 --end
 
 function Cli:evaluate()
-	self.client.current:evaluate()
-	--local status, _ = xpcall(self.client.current.evaluate, err.handler, self.client.current)
-	--vim.notify(vim.inspect(status))
+	local status, msg = xpcall(self.client.current.evaluate, err.handler, self.client.current)
+	if not status then
+		error("Evaluating the code blocks of the document failed" .. msg)
+	end
 end
 
 --function Cli:open_graph()
