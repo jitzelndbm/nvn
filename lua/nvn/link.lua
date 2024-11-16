@@ -46,28 +46,39 @@ end
 
 ---@param client Client
 function Link:follow(client)
+	---@type { pattern: string, handler: function }[]
 	local merged = {}
 
-	for pattern, func in pairs(client.config.handlers) do
-		merged[pattern] = func
+	---@type boolean[]
+	local patterns = {}
+
+	-- Add all patterns from the user config
+	for _, entry in ipairs(client.config.handlers) do
+		table.insert(merged, entry)
+		patterns[entry.pattern] = true
 	end
 
-	for pattern, func in pairs(default_handlers.mapping) do
-		if merged[pattern] == nil then merged[pattern] = func end
-	end
-
-	---@type boolean
-	local found_handler = false
-	for pattern, handler in pairs(merged) do
-		-- FIXME: Maybe the order in which the handlers are examined should be an option as well.
-		if type(pattern) == "string" and self.url:find(pattern) then
-			handler(client, self)
-			found_handler = true
-			break
+	-- Optionally add default handlers
+	for _, entry in ipairs(default_handlers.mapping) do
+		if not patterns[entry.pattern] then
+			table.insert(merged, entry)
+			patterns[entry.pattern] = true
 		end
 	end
 
-	if not found_handler then merged[0](client, self) end
+	---@type { pattern: string, handler: function }
+	local fallback
+
+	for _, entry in pairs(merged) do
+		if type(entry.pattern) == "string" and self.url:find(entry.pattern) then
+			entry.handler(client, self)
+			return
+		else
+			fallback = entry
+		end
+	end
+
+	fallback.handler(client, self)
 end
 
 return Link

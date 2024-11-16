@@ -34,9 +34,11 @@ end
 default_handlers.default = function(_, link) vim.ui.open(link.url) end
 
 default_handlers.mapping = {
-	[".md$"] = default_handlers.markdown,
-	["/$"] = default_handlers.folder,
-	[0] = default_handlers.default,
+	{ pattern = ".md$", handler = default_handlers.markdown },
+	{ pattern = "/$", handler = default_handlers.folder },
+
+	-- NOTE: This has to be last, since it matched everything. It acts as a fallback handler.
+	{ pattern = ".*", handler = default_handlers.default }
 }
 
 return default_handlers

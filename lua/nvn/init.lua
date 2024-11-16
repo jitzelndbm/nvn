@@ -10,20 +10,24 @@ local default_config = {
 	index = "README.md",
 	save_when_navigating = false,
 	handlers = {
-		---Asset opener, links that start with assets://
-		---@param link Link
-		["^assets://"] = function(_, link)
-			local p = vim.fs.normalize(
-				vim.fs.joinpath(root, "assets", link.url:sub(10))
-			)
+		{
+			pattern = "^assets://",
 
-			if vim.fn.filereadable(p) == 0 then
-				vim.notify("File does not exist")
-				return
-			end
+			---Asset opener, links that start with assets://
+			---@param link Link
+			handler = function(_, link)
+				local p = vim.fs.normalize(
+					vim.fs.joinpath(root, "assets", link.url:sub(10))
+				)
 
-			vim.ui.open(p)
-		end,
+				if vim.fn.filereadable(p) == 0 then
+					vim.notify("File does not exist")
+					return
+				end
+
+				vim.ui.open(p)
+			end,
+		},
 	},
 }
 
