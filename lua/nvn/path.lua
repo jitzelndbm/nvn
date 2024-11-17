@@ -12,6 +12,9 @@ Path.__index = Path
 --function Path.new_from_rel_to_root(root, relative_path)
 --end
 
+---This function takes a note and a path relative to that note,
+---it takes the dirname of the note's path and prepends it to 
+---the relative note.
 ---@param note Note
 ---@param url string
 ---@return Path

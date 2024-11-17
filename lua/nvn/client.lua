@@ -4,10 +4,16 @@ local Note = require("nvn.note")
 ---@class Path
 local Path = require("nvn.path")
 
+---@class History
+local History = require("nvn.history")
+
+local err = require("nvn.error")
+
 ---This class hold responsibility over the management of notes.
 ---@class Client
----@field config table This table holds a configuration scheme
+---@field config table This table holds the configuration scheme
 ---@field current Note
+---@field history History
 local Client = {}
 Client.__index = Client
 
@@ -27,7 +33,7 @@ function Client.new(config)
 	else
 		error(path_or_err)
 	end
-
+	self.history = History.new(self.current)
 	return self
 end
 
@@ -50,6 +56,24 @@ end
 ---@param note Note
 function Client:add(note)
 	note = note or self.current
+
+	local path = note.path.full_path
+
+	-- Adjust the file path if needed
+	if note.path.full_path:sub(-1) == "/" then
+		path = vim.fs.normalize(vim.fs.join(path, self.config.index))
+	end
+
+	vim.fn.mkdir(vim.fs.dirname(path), "-p")
+
+	-- Open the file in write mode without deleting its contents
+	local file, errmsg = io.open(note.path.full_path, "a+")
+
+	if not file then
+		return error("Error while trying to write " .. note.path.full_path .. ": " .. errmsg)
+	end
+
+	file:close()
 end
 
 -- NOTE: maybe needed

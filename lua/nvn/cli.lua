@@ -1,6 +1,12 @@
 ---@class Navigation
 local Navigation = require("nvn.navigation")
 
+---@class Path
+local Path = require("nvn.path")
+
+---@class Note
+local Note = require("nvn.note")
+
 local err = require("nvn.error")
 
 --- # Cli class
@@ -75,9 +81,23 @@ function Cli:follow_link()
 	end
 end
 
+---A function to create a note relative to the current note
+function Cli:create_note()
+	local file_name = vim.fn.input("Filename (relative to current open note): ")
+	local new_path = Path.new_from_note(self.client.current, file_name)
+	local new_note = Note.new(new_path)
+	local status, msg = xpcall(self.client.add, err.handler, self.client, new_note)
+
+	if status then
+		self.client:set_location(new_note)
+	else
+		error("Note could not be created" .. msg)
+	end
+end
+
 ---Go to the previously visited note
---function Cli:goto_previous()
---end
+function Cli:goto_previous()
+end
 
 --function Cli:delete_note()
 --end
@@ -105,6 +125,7 @@ function Cli:register_commands()
 	xpn("NvnNextLink", self.next_link, self)
 	xpn("NvnFollowLink", self.follow_link, self)
 	xpn("NvnEval", self.evaluate, self)
+	xpn("NvnCreateNote", self.create_note, self)
 end
 
 return Cli
