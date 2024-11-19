@@ -97,6 +97,9 @@ end
 
 ---Go to the previously visited note
 function Cli:goto_previous()
+	local last = self.client.history:last()
+	self.client.history:pop()
+	self.client:set_location(last)
 end
 
 --function Cli:delete_note()
@@ -126,6 +129,7 @@ function Cli:register_commands()
 	xpn("NvnFollowLink", self.follow_link, self)
 	xpn("NvnEval", self.evaluate, self)
 	xpn("NvnCreateNote", self.create_note, self)
+	xpn("NvnGotoPrevious", self.goto_previous, self)
 end
 
 return Cli

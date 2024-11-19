@@ -8,6 +8,7 @@ test
 [another one](https://google.com)
 test
 [a](a.md)
+[b](b.md)
 [This note does not exist](gamer/)
 test
 
@@ -22,7 +23,6 @@ Appends the result of the code block after the code block.
 ```lua, eval
 return "Hello World"
 ```
-Hello World
 Hello World
 
 ### External

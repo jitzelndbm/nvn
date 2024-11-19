@@ -11,7 +11,9 @@ default_handlers.markdown = function(client, link)
 	---@class Note
 	local Note = require("nvn.note")
 
-	client:set_location(Note.new(Path.new_from_note(client.current, link.url)))
+	local n = Note.new(Path.new_from_note(client.current, link.url))
+	client.history:push(client.current)
+	client:set_location(n)
 end
 
 ---@param client Client
@@ -24,9 +26,9 @@ default_handlers.folder = function(client, link)
 		---@class Note
 		local Note = require("nvn.note")
 
-		---@type Path
-		local p = Path.new_from_note(client.current, joined)
-		client:set_location(Note.new(p))
+		local n = Note.new(Path.new_from_note(client.current, joined))
+		client.history:push(client.current)
+		client:set_location(n)
 	end
 end
 

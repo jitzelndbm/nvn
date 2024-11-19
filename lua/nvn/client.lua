@@ -40,6 +40,9 @@ end
 ---Move the nvn buffer to a new location
 ---@param note Note
 function Client:set_location(note)
+	self.current = note
+
+	-- Delete all other buffers
 	self.current:buf_call(function()
 		if self.config.auto_save then
 			vim.cmd.write()
@@ -49,10 +52,11 @@ function Client:set_location(note)
 		end
 	end)
 
+	-- Edit the new note
 	vim.cmd.edit(note.path.full_path)
 end
 
----This function adds a new note to the store / does all the file system stuff
+---This function makes sure that a note on the file system, it only creates files/directories.
 ---@param note Note
 function Client:add(note)
 	note = note or self.current
@@ -83,7 +87,6 @@ end
 --	note = note or self.current
 --end
 
----
 ---@param n? Note
 function Client:move(n, new_path)
 	n = n or self.current
