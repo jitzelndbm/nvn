@@ -1,4 +1,5 @@
 local default_handlers = require("nvn.default_handlers")
+local err = require("nvn.error")
 
 ---This class represents a link in a markdown Note
 ---@class Link
@@ -71,14 +72,16 @@ function Link:follow(client)
 
 	for _, entry in pairs(merged) do
 		if type(entry.pattern) == "string" and self.url:find(entry.pattern) then
-			entry.handler(client, self)
+			local status, msg = xpcall(entry.handler, err.handler, client, self)
+			if not status then error("Error in handler: " .. msg) end
 			return
 		else
 			fallback = entry
 		end
 	end
 
-	fallback.handler(client, self)
+	local status, msg = xpcall(fallback.handler, err.handler, client, self)
+	if not status then error("Error in fallback handler: " .. msg) end
 end
 
 return Link

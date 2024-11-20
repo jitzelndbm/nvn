@@ -40,14 +40,19 @@ function Note:buf_call(f)
 	return err_or_value
 end
 
----This function will overwrite the content of a note, replacing it with a template
----@param template Template
----@param force? boolean
-function Note:write_template(template, force) force = force or false end
+-- ---This function will overwrite the content of a note, replacing it with a template
+-- ---@param template Template
+-- ---@param force? boolean
+-- function Note:write_template(template, force) force = force or false end
 
 ---Overwrites the entire note with new content
+---@param force boolean
 ---@param ... string
-function Note:write(...)
+function Note:write(force, ...)
+	if not self.path:exists() and not force then
+		error("Note exists on file system, thus may contain content. To overwrite enable arg force.")
+	end
+
 	local file = io.open(self.path.full_path, "w")
 		or error("File could not be opened: " .. self.path.full_path)
 

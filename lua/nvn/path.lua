@@ -2,18 +2,23 @@
 ---@class Path
 ---@field full_path string
 ---@field rel_to_root string
----
----@field new_from_note function
----@field new_from_full function
-
 local Path = {}
 Path.__index = Path
 
---function Path.new_from_rel_to_root(root, relative_path)
---end
+---@param root string
+---@param relative_path string
+---@return Path
+function Path.new_from_rel_to_root(root, relative_path)
+	local self = setmetatable({}, Path)
+
+	self.rel_to_root = vim.fs.normalize(relative_path)
+	self.full_path = vim.fs.normalize(vim.fs.joinpath(root, self.rel_to_root))
+
+	return self
+end
 
 ---This function takes a note and a path relative to that note,
----it takes the dirname of the note's path and prepends it to 
+---it takes the dirname of the note's path and prepends it to
 ---the relative note.
 ---@param note Note
 ---@param url string
@@ -29,7 +34,10 @@ function Path.new_from_note(note, url)
 	return self
 end
 
----Create a new path from a full_path
+-- FIXME: Maybe it's a better idea to use ... arg, and just zip those 
+-- parts together instead of assuming that a full path will be provided.
+--
+---Create a new path from a full path.
 ---@param root string
 ---@param full_path string
 ---@return Path
@@ -55,7 +63,7 @@ end
 ---Returns if a file exists under this path
 ---@param self Path
 ---@return boolean
-function Path:exists() return vim.fn.filereadable(self.full_path) == 1 end
+function Path:exists() return vim.uv.fs_stat(self.full_path) ~= nil end
 
 --function Path.rel_between(begin, end)
 --end

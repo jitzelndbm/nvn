@@ -9,6 +9,7 @@ local default_config = {
 	root = root,
 	index = "README.md",
 	save_when_navigating = false,
+	template_folder = "templates",
 	handlers = {
 		{
 			pattern = "^assets://",

@@ -5,6 +5,8 @@
 
 local engine = {}
 
+local err = require("nvn.error")
+
 function engine.escape(data)
 	return tostring(data or ''):gsub('[">/<\'&]', {
 		['&'] = '&',
@@ -67,6 +69,21 @@ function engine.parse(data, minify)
 	return str
 end
 
-function engine.compile(...) return loadstring(engine.parse(...))() end
+function engine.compile(...)
+	-- NOTE: added new lines to the errors, so they stand out more, end users interact 
+	-- with these errors much.
+
+	local template_func, err_msg = loadstring(engine.parse(...))
+	if not template_func then error("Parse error in template: \n\n" .. err_msg) end
+
+	---@type boolean
+	local success
+	---@type string
+	local result_or_err
+	success, result_or_err = xpcall(template_func, err.handler)
+	if not success then error("Runtime error in template: \n\n" .. result_or_err) end
+
+	return result_or_err
+end
 
 return engine
