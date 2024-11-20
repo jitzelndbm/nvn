@@ -28,8 +28,6 @@ end
 
 ---Push a new note to the history
 ---@param new Note
-function History:push(new)
-	table.insert(self.data, new)
-end
+function History:push(new) table.insert(self.data, new) end
 
 return History

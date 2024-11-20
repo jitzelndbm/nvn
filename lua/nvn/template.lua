@@ -22,9 +22,17 @@ end
 ---@param templates_folder string
 ---@return Template
 function Template.from_picker(root, templates_folder)
-	local status, p_or_err = xpcall(Path.new_from_rel_to_root, err.handler, root, templates_folder)
-	if not status then error("An error occured while constructing the templates folder path" .. p_or_err) end
-	if not p_or_err:exists() then error("The templates folder does not exist") end
+	local status, p_or_err =
+		xpcall(Path.new_from_rel_to_root, err.handler, root, templates_folder)
+	if not status then
+		error(
+			"An error occured while constructing the templates folder path"
+				.. p_or_err
+		)
+	end
+	if not p_or_err:exists() then
+		error("The templates folder does not exist")
+	end
 
 	-- Collect an iterator over the templates folder
 	---@type string[]
@@ -33,17 +41,20 @@ function Template.from_picker(root, templates_folder)
 		table.insert(template_files, t)
 	end
 
-	require("mini.pick").setup {}
+	require("mini.pick").setup({})
 
 	---@type string?
-	local file = MiniPick.start {
+	local file = MiniPick.start({
 		source = { items = template_files },
-		window = { prompt_prefix = 'Choose a template > ' },
-	}
+		window = { prompt_prefix = "Choose a template > " },
+	})
 
 	if not file then error("Template picker cancelled") end
 
-	local final_path = Path.new_from_full(root, vim.fs.normalize(vim.fs.joinpath(p_or_err.full_path, file)))
+	local final_path = Path.new_from_full(
+		root,
+		vim.fs.normalize(vim.fs.joinpath(p_or_err.full_path, file))
+	)
 	local self = setmetatable({}, Template)
 	self.path = final_path
 	return self
@@ -55,7 +66,9 @@ end
 ---@return string
 function Template:render(variables)
 	local file = io.open(self.path.full_path, "r")
-	if not file then error("Could not open the template file: " .. self.path.full_path) end
+	if not file then
+		error("Could not open the template file: " .. self.path.full_path)
+	end
 
 	---@type string
 	local content = file:read("*a")

@@ -86,7 +86,8 @@ function Cli:create_note()
 	local file_name = vim.fn.input("Filename (relative to current open note): ")
 	local new_path = Path.new_from_note(self.client.current, file_name)
 	local new_note = Note.new(new_path)
-	local status, msg = xpcall(self.client.add, err.handler, self.client, new_note)
+	local status, msg =
+		xpcall(self.client.add, err.handler, self.client, new_note)
 
 	if status then
 		self.client:set_location(new_note)
@@ -106,7 +107,8 @@ end
 --end
 
 function Cli:evaluate()
-	local status, msg = xpcall(self.client.current.evaluate, err.handler, self.client.current)
+	local status, msg =
+		xpcall(self.client.current.evaluate, err.handler, self.client.current)
 	if not status then
 		error("Evaluating the code blocks of the document failed" .. msg)
 	end

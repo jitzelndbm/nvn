@@ -91,7 +91,7 @@ function Navigation:search_link(fallback, direction, filter)
 			else
 				error(
 					"No link could be found and fallback was disabled"
-					.. found_or_err
+						.. found_or_err
 				)
 			end
 		end

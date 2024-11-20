@@ -34,7 +34,7 @@ function Path.new_from_note(note, url)
 	return self
 end
 
--- FIXME: Maybe it's a better idea to use ... arg, and just zip those 
+-- FIXME: Maybe it's a better idea to use ... arg, and just zip those
 -- parts together instead of assuming that a full path will be provided.
 --
 ---Create a new path from a full path.

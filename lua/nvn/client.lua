@@ -72,7 +72,12 @@ function Client:add(note)
 	local file, errmsg = io.open(note.path.full_path, "a+")
 
 	if not file then
-		return error("Error while trying to write " .. note.path.full_path .. ": " .. errmsg)
+		return error(
+			"Error while trying to write "
+				.. note.path.full_path
+				.. ": "
+				.. errmsg
+		)
 	end
 
 	file:close()
@@ -86,14 +91,10 @@ end
 --end
 
 ---@param n? Note
-function Client:move(n, new_path)
-	n = n or self.current
-end
+function Client:move(n, new_path) n = n or self.current end
 
 ---This function removes a note from the file system, forcefully
 ---@param n? Note
-function Client:remove(n)
-	n = n or self.current
-end
+function Client:remove(n) n = n or self.current end
 
 return Client
