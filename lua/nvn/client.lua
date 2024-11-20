@@ -7,8 +7,6 @@ local Path = require("nvn.path")
 ---@class History
 local History = require("nvn.history")
 
-local err = require("nvn.error")
-
 ---This class hold responsibility over the management of notes.
 ---@class Client
 ---@field config table This table holds the configuration scheme

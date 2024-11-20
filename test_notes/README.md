@@ -24,6 +24,14 @@ Appends the result of the code block after the code block.
 return "Hello World"
 ```
 Hello World
+Hello World
+Hello World
+Hello World
+
+#### Returns nothing
+
+```lua, eval
+```
 
 ### External
 
@@ -32,3 +40,7 @@ This replaces the content between the open and close directives
 <!-- NVN_EVAL ./my_eval_script.lua --> 
 Hello World!
 <!-- NVN_EVAL end -->
+
+<!-- NVN_EVAL ./non_existent.lua --> 
+<!-- NVN_EVAL end -->
+

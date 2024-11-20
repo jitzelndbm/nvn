@@ -4,6 +4,8 @@ local Navigation = require("nvn.navigation")
 ---@class Path
 local Path = require("nvn.path")
 
+local err = require("nvn.error")
+
 local BLOCK_QUERY = [[
 (fenced_code_block) @inside
 ]]
@@ -35,8 +37,8 @@ end
 ---@return any
 function Note:buf_call(f)
 	f = f or error("No callback function was provided")
-	local status, err_or_value = pcall(vim.api.nvim_buf_call, 0, f)
-	if not status then error(err_or_value) end
+	local status, err_or_value = xpcall(vim.api.nvim_buf_call, err.handler, 0, f)
+	if not status then error("Error in buffer call" .. err_or_value) end
 	return err_or_value
 end
 
@@ -89,13 +91,23 @@ function Note:evaluate()
 			if not src_node then goto continue end
 
 			local src = vim.treesitter.get_node_text(src_node, 0)
+			-- NOTE: this means the inline source block is empty
+			if src == "```" then
+				goto continue
+			end
 			local end_row, _, _ = src_node:end_();
 
-			local res = loadstring(src)()
+			local eval_func, parse_error = loadstring(src)
+			if not eval_func then error("Parse error occured in block at: " .. parse_error) end
 
-			if res then
-				self:set_lines(end_row + 1, end_row + 1, vim.fn.split(res, "\n"))
+			local success, res_or_err = xpcall(eval_func, err.handler)
+			if not success then error("Runtime error during execution of code block" .. res_or_err) end
+
+			-- If the result of the block is nil, don't replace lines
+			if res_or_err then
+				self:set_lines(end_row + 1, end_row + 1, vim.fn.split(res_or_err, "\n"))
 			end
+
 			::continue::
 		end
 
@@ -123,9 +135,15 @@ function Note:evaluate()
 				local end_row, _, _ = node:end_()
 				local src = file:read("*a")
 
-				local res = loadstring(src)()
-				if res then
-					self:set_lines(begin_row + 1, end_row - 1, vim.fn.split(res, "\n"))
+				local eval_func, parse_error = loadstring(src)
+				if not eval_func then error("Parse error occured in block at: " .. parse_error) end
+
+				local success, res_or_err = xpcall(eval_func, err.handler)
+				if not success then error("Runtime error during execution of code block" .. res_or_err) end
+
+				-- If the result of the block is nil, don't replace lines
+				if res_or_err then
+					self:set_lines(begin_row + 1, end_row - 1, vim.fn.split(res_or_err, "\n"))
 				end
 
 				file:close()
