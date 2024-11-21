@@ -66,8 +66,11 @@ let
 
     installPhase = ''
       mkdir -p $out $out/lib $out/lua
+
       cp -r lua/* $out/lua/
+
       cp -r ${mkGraph}/lib/graph.min.js $out/lib/
+			cp -r graph/index.html $out/lib/graph.html
     '';
   });
 

@@ -97,4 +97,7 @@ function Client:move(n, new_path) n = n or self.current end
 ---@param n? Note
 function Client:remove(n) n = n or self.current end
 
+function Client:get_all_notes()
+end
+
 return Client
