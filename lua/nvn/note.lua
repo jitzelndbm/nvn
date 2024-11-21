@@ -190,7 +190,7 @@ function Note:evaluate()
 					error("Unexpected end directive")
 				end
 
-				local path_text = text:sub(15, -6)
+				local path_text = text:sub(15, -5)
 				path = Path.new_from_note(self, path_text)
 
 				begin_row, _, _ = node:start()

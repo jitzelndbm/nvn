@@ -8,8 +8,14 @@ local root = "/home/jitze/pr/nvn/test_notes/"
 local default_config = {
 	root = root,
 	index = "README.md",
-	save_when_navigating = false,
 	template_folder = "templates",
+
+	-- Evaluate a buffer on entry via a link (if you use the default handlers)
+	auto_evaluation = true,
+
+	-- Auto save when navigating through links
+	auto_save = true,
+
 	handlers = {
 		{
 			pattern = "^assets://",

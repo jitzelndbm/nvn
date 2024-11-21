@@ -36,6 +36,7 @@ default_handlers.markdown = function(client, link)
 
 	client.history:push(client.current)
 	client:set_location(n)
+	if client.config.auto_evaluation then n:evaluate() end
 end
 
 ---@param client Client
@@ -71,11 +72,13 @@ default_handlers.folder = function(client, link)
 
 	client.history:push(client.current)
 	client:set_location(n)
+	if client.config.auto_evaluation then n:evaluate() end
 end
 
 ---@param link Link
 default_handlers.default = function(_, link) vim.ui.open(link.url) end
 
+---@type { pattern: string, handler: function }[]
 default_handlers.mapping = {
 	{ pattern = ".md$", handler = default_handlers.markdown },
 	{ pattern = "/$", handler = default_handlers.folder },
