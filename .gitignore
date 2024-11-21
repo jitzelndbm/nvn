@@ -1,5 +1,6 @@
-graph/node_modules/
-graph/build/
 result
 .direnv
 docs/
+
+node_modules/
+build/

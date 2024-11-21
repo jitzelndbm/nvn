@@ -39,3 +39,5 @@ require("lspconfig").nixd.setup({
 		},
 	},
 })
+
+require("lspconfig").eslint.setup({})

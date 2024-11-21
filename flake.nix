@@ -56,6 +56,9 @@
               # Nix
               nixd
               nixfmt-rfc-style
+
+              # Javascript (graph)
+              nodejs
             ];
           };
         }
@@ -74,6 +77,7 @@
         {
           default = lib.mkNvn;
           plugin = lib.mkPlugin;
+					graph = lib.mkGraph;
         }
       );
 

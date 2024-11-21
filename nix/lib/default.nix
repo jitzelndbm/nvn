@@ -4,9 +4,23 @@
   name,
 }:
 let
+  inherit (pkgs) wrapNeovimUnstable neovim-unwrapped buildNpmPackage;
   inherit (pkgs.vimUtils) buildVimPlugin;
-  inherit (pkgs) wrapNeovimUnstable neovim-unwrapped;
   inherit (pkgs.lib) makeOverridable;
+  inherit (pkgs.stdenv) mkDerivation;
+
+  mkGraph = buildNpmPackage {
+    name = "nvn-graph";
+    src = ../../.;
+    npmBuildScript = "build";
+    npmDepsHash = "sha256-Zz4/tUALxbVE9zzXjn5lWESZ4o88zQk1qlYNSBXcnHI=";
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/lib
+      cp -r build/* $out/lib
+      runHook postInstall
+    '';
+  };
 
   defaultSettings = {
     extraOpts = "";
@@ -42,7 +56,20 @@ let
     };
   };
 
-  mkPlugin = buildVimPlugin { inherit name src; };
+	# Combine the graph derivation and build the neovim plugin
+  mkPlugin = mkDerivation (finalAttrs: {
+		name = "nvn";
+
+    src = ../../.;
+
+    buildInputs = [ mkGraph ];
+
+    installPhase = ''
+      mkdir -p $out $out/lib $out/lua
+      cp -r lua/* $out/lua/
+      cp -r ${mkGraph}/lib/graph.min.js $out/lib/
+    '';
+  });
 
   mkNvnUnwrapped =
     settings:
@@ -56,5 +83,10 @@ let
   mkNvn = makeOverridable mkNvnUnwrapped defaultSettings;
 in
 {
-  inherit mkPlugin mkNvnUnwrapped mkNvn;
+  inherit
+    mkPlugin
+    mkNvnUnwrapped
+    mkNvn
+    mkGraph
+    ;
 }
