@@ -41,14 +41,12 @@ function Client:set_location(note)
 	self.current = note
 
 	-- Delete all other buffers
-	self.current:buf_call(function()
-		if self.config.auto_save then
-			vim.cmd.write()
-			vim.api.nvim_buf_delete(0, {})
-		else
-			vim.api.nvim_buf_delete(0, { force = true })
-		end
-	end)
+	if self.config.auto_save then
+		vim.cmd.write()
+		vim.api.nvim_buf_delete(0, {})
+	else
+		vim.api.nvim_buf_delete(0, { force = true })
+	end
 
 	-- Edit the new note
 	vim.cmd.edit(note.path.full_path)

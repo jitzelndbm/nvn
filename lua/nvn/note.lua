@@ -4,6 +4,9 @@ local Navigation = require("nvn.navigation")
 ---@class Path
 local Path = require("nvn.path")
 
+---@class Link
+local Link = require("nvn.link")
+
 local err = require("nvn.error")
 
 local BLOCK_QUERY = [[
@@ -12,6 +15,11 @@ local BLOCK_QUERY = [[
 
 local EXTERNAL_QUERY = [[
 (html_block) @block
+]]
+
+local LINK_QUERY = [[
+(inline_link) @link
+(shortcut_link) @shortcut
 ]]
 
 ---Represents a note file, this class has the responsibility over the contents of a note. This class does not (or barely) interact with the file tree
@@ -37,9 +45,27 @@ end
 ---@return any
 function Note:buf_call(f)
 	f = f or error("No callback function was provided")
+
+	local original_bufnr = vim.api.nvim_get_current_buf()
+	local target_bufnr = vim.fn.bufnr(self.path.full_path, false)
+	local buffer_exists = target_bufnr ~= -1
+
+	if not buffer_exists then
+		vim.cmd.edit(self.path.full_path)
+		target_bufnr = vim.api.nvim_get_current_buf()
+	end
+
 	local status, err_or_value =
-		xpcall(vim.api.nvim_buf_call, err.handler, 0, f)
+		xpcall(vim.api.nvim_buf_call, err.handler, target_bufnr, f)
+
+	vim.cmd.buffer(original_bufnr)
+
+	if not buffer_exists then
+		vim.api.nvim_buf_delete(target_bufnr, {force = true})
+	end
+
 	if not status then error("Error in buffer call" .. err_or_value) end
+
 	return err_or_value
 end
 
@@ -149,8 +175,8 @@ function Note:evaluate()
 				if not file then
 					error(
 						"File from directive could not be found: '"
-							.. path.full_path
-							.. "'"
+						.. path.full_path
+						.. "'"
 					)
 				end
 
@@ -166,7 +192,7 @@ function Note:evaluate()
 				if not success then
 					error(
 						"Runtime error during execution of code block"
-							.. res_or_err
+						.. res_or_err
 					)
 				end
 
@@ -203,6 +229,35 @@ function Note:evaluate()
 	end)
 end
 
-function Note:get_links() end
+---@param self Note
+---@return Link[]
+function Note:get_links()
+	---@type Link[]
+	local links = {}
+
+	self:buf_call(function()
+		local tree = vim.treesitter.get_parser(0, "markdown_inline"):parse()
+		local root = tree[1]:root()
+		local result =
+			vim.treesitter.query.parse("markdown_inline", LINK_QUERY)
+		local iter = result:iter_captures(root, 0)
+
+		-- Collect the iterator
+		local i = 1
+		for _, node in iter do
+			local success, link_or_err =
+				xpcall(Link.new, err.handler, node)
+
+			if not success then
+				error("Construction of a link failed" .. link_or_err)
+			end
+
+			links[i] = link_or_err
+			i = i + 1
+		end
+	end)
+
+	return links
+end
 
 return Note
