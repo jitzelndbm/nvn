@@ -25,12 +25,12 @@ let
     extraOpts = "";
     extraPlugins = [ ];
 
-		root = "~/dx/notes";
-		index = "README.md";
-		autoEvaluation = false;
-		autoSave = true;
-		handlers = {};
-		templateFolder = "templates";
+    root = "~/dx/notes";
+    index = "README.md";
+    autoEvaluation = false;
+    autoSave = true;
+    handlers = { };
+    templateFolder = "templates";
 
     keymaps = {
       leader = " ";
@@ -46,7 +46,7 @@ let
     };
 
     colors = {
-			# Default gruvbox
+      # Default gruvbox
       base00 = "#1d2021";
       base01 = "#3c3836";
       base02 = "#504945";
@@ -65,35 +65,42 @@ let
       base0F = "#d65d0e";
     };
 
-
   };
 
-	# Combine the graph derivation and build the neovim plugin
+  # Combine the graph derivation and build the neovim plugin
   mkPlugin = mkDerivation (finalAttrs: {
-		name = "nvn";
+    name = "nvn";
 
     src = ../../.;
 
     buildInputs = [ mkGraph ];
 
     installPhase = ''
-      mkdir -p $out $out/lib $out/lua
+            mkdir -p $out $out/lib $out/lua
 
-      cp -r lua/* $out/lua/
+            cp -r lua/* $out/lua/
 
-      cp -r ${mkGraph}/lib/graph.min.js $out/lib/
-			cp -r graph/index.html $out/lib/graph.html
+            cp -r ${mkGraph}/lib/graph.min.js $out/lib/
+      			cp -r graph/index.html $out/lib/graph.html
     '';
   });
 
   mkNvnUnwrapped =
     settings:
-    wrapNeovimUnstable neovim-unwrapped (
+    ((wrapNeovimUnstable neovim-unwrapped (
       import ./config.nix {
         inherit pkgs settings;
         plugin = mkPlugin;
       }
-    );
+    )).overrideAttrs (old:
+      {
+        postInstall = ''
+					mv $out/bin/nvim $out/bin/.nvn-wrapped
+					touch $out/bin/nvn
+					chmod +x $out/bin/nvn
+					echo -e "exec $out/bin/.nvn-wrapped "${settings.root}/${settings.index}"" > $out/bin/nvn
+        '';
+      }));
 
   mkNvn = makeOverridable mkNvnUnwrapped defaultSettings;
 in
