@@ -7,6 +7,9 @@ local Path = require("nvn.path")
 ---@class Note
 local Note = require("nvn.note")
 
+---@class Graph
+local Graph = require("nvn.graph")
+
 local err = require("nvn.error")
 
 --- # Cli class
@@ -15,7 +18,7 @@ local err = require("nvn.error")
 --- ## Fields
 --- @field client Client
 --- @field __index Cli
----
+---darkgray
 --- ## Methods
 --- @field new function
 --- @field register function
@@ -114,8 +117,11 @@ function Cli:evaluate()
 	end
 end
 
---function Cli:open_graph()
---end
+function Cli:open_graph()
+	local g = Graph.new()
+	g:construct(self.client)
+	g:open()
+end
 
 function Cli:register_commands()
 	local function xpn(k, m, a)
@@ -132,6 +138,7 @@ function Cli:register_commands()
 	xpn("NvnEval", self.evaluate, self)
 	xpn("NvnCreateNote", self.create_note, self)
 	xpn("NvnGotoPrevious", self.goto_previous, self)
+	xpn("NvnOpenGraph", self.open_graph, self)
 end
 
 return Cli

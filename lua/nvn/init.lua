@@ -4,9 +4,6 @@ local Client = require("nvn.client")
 ---@class Cli
 local Cli = require("nvn.cli")
 
----@class Graph
-local Graph = require("nvn.graph")
-
 local root = "/home/jitze/pr/nvn/test_notes/"
 local default_config = {
 	root = root,
@@ -54,9 +51,6 @@ function nvn.setup(config)
 	-- Register all user commands
 	c:register_commands()
 
-	local g = Graph.new()
-	g:construct(c.client)
-	g:open()
 end
 
 return nvn
