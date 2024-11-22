@@ -5,7 +5,6 @@
 }:
 let
   inherit (pkgs) wrapNeovimUnstable neovim-unwrapped buildNpmPackage;
-  inherit (pkgs.vimUtils) buildVimPlugin;
   inherit (pkgs.lib) makeOverridable;
   inherit (pkgs.stdenv) mkDerivation;
 
@@ -25,8 +24,17 @@ let
   defaultSettings = {
     extraOpts = "";
     extraPlugins = [ ];
+
+		root = "~/dx/notes";
+		index = "README.md";
+		autoEvaluation = false;
+		autoSave = true;
+		handlers = {};
+		templateFolder = "templates";
+
     keymaps = {
       leader = " ";
+
       createNote = "<leader>C";
       deleteNote = "<leader>D";
       eval = "<leader>E";
@@ -36,7 +44,9 @@ let
       openGraph = "<leader>O";
       previousLink = "<S-Tab>";
     };
+
     colors = {
+			# Default gruvbox
       base00 = "#1d2021";
       base01 = "#3c3836";
       base02 = "#504945";
@@ -54,6 +64,8 @@ let
       base0E = "#d3869b";
       base0F = "#d65d0e";
     };
+
+
   };
 
 	# Combine the graph derivation and build the neovim plugin

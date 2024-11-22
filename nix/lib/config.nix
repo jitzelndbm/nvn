@@ -45,24 +45,51 @@ makeNeovimConfig {
     ++ [
       (
         let
-          inherit (settings) keymaps;
+          inherit (settings)
+            keymaps
+            root
+            index
+            autoEvaluation
+            autoSave
+            handlers
+            templateFolder
+            ;
+
+          inherit (pkgs.lib) attrNames;
         in
         {
           inherit plugin;
-          config = toLua (concatLines [
-            # Normal configuration
-            (setup "nvn" "")
+          config =
+            let
+							boolToStr = x: if x then "true" else "false";
+              handlersTable =
+                "{"
+                + (concatLines (
+                  map (key: "${key} = function (client, link)\n${handlers.${key}}\nend,") (attrNames handlers)
+                ))
+                + "}";
+            in
+            builtins.trace (toString root) toLua (concatLines [
+              # Normal configuration
+              (setup "nvn" ''
+                root = "${root}",
+                index = "${index}",
+                auto_evaluation = ${boolToStr autoEvaluation},
+                auto_save = ${boolToStr autoSave},
+                template_folder = ${templateFolder},
+                handlers = ${handlersTable},
+              '')
 
-            # Keymaps
-            (nmap keymaps.followLink "<cmd>NvnFollowLink<cr>")
-            (nmap keymaps.nextLink "<cmd>NvnNextLink<cr>")
-            (nmap keymaps.previousLink "<cmd>NvnPreviousLink<cr>")
-            (nmap keymaps.gotoPrevious "<cmd>NvnGotoPrevious<cr>")
-            (nmap keymaps.deleteNote "<cmd>NvnDeleteNote<cr>")
-            (nmap keymaps.createNote "<cmd>NvnCreateNote<cr>")
-            (nmap keymaps.eval "<cmd>NvnEval<cr>")
-            (nmap keymaps.openGraph "<cmd>NvnOpenGraph<cr>")
-          ]);
+              # Keymaps
+              (nmap keymaps.followLink "<cmd>NvnFollowLink<cr>")
+              (nmap keymaps.nextLink "<cmd>NvnNextLink<cr>")
+              (nmap keymaps.previousLink "<cmd>NvnPreviousLink<cr>")
+              (nmap keymaps.gotoPrevious "<cmd>NvnGotoPrevious<cr>")
+              (nmap keymaps.deleteNote "<cmd>NvnDeleteNote<cr>")
+              (nmap keymaps.createNote "<cmd>NvnCreateNote<cr>")
+              (nmap keymaps.eval "<cmd>NvnEval<cr>")
+              (nmap keymaps.openGraph "<cmd>NvnOpenGraph<cr>")
+            ]);
         }
       )
 
