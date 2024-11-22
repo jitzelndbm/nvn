@@ -39,25 +39,39 @@ in
     };
 
     handlers = mkOption {
-      type = types.attrsOf types.str;
+      type = types.listOf (
+				types.submodule {
+					options = {
+						pattern = mkOption {type = types.str;};
+						handler = mkOption {type = types.str;};
+					};
+				}
+      );
       description = "Handlers for links in the plugin";
-      default = { };
+      default = [ ];
     };
 
     templateFolder = mkOption {
       type = types.str;
       description = "path to the templates folder relative to the root";
-			default = "templates";
+      default = "templates";
     };
 
     extraOpts = mkOption {
       type = types.str;
       description = "Extra options";
-      default = { };
+      default = "";
     };
 
     extraPlugins = mkOption {
-      type = types.listOf types.submodule;
+      type = types.listOf (
+				types.submodule {
+					options = {
+						plugin = mkOption {type = types.package;};
+						config = mkOption {type = types.str;};
+					};
+				}
+      );
       description = "Extra plugins";
       default = [ ];
     };
@@ -79,7 +93,7 @@ in
 
     colors = mkOption {
       type = lib.types.attrsOf types.str;
-			# Gruvbox as default
+      # Gruvbox as default
       default = {
         base00 = "#1d2021";
         base01 = "#3c3836";
@@ -105,17 +119,18 @@ in
     home.packages = [
       # NOTE: dankjewel yolanthe <3
       (cfg.package.override {
-        root = cfg.root;
-        extraSettings = cfg.extraSettings;
-        behaviour = with cfg.behaviour; {
-          inherit strictClosing automaticCreation autoSave;
-        };
-        appearance = with cfg.appearance; {
-          inherit folding hideNumbers;
-        };
-        templates = with cfg.templates; {
-          inherit enable dir;
-        };
+        inherit (cfg)
+          root
+          index
+          handlers
+          templateFolder
+          extraOpts
+          extraPlugins
+          keymaps
+          colors
+          autoSave
+          autoEvaluation
+          ;
       })
     ];
   };

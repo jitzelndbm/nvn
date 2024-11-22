@@ -54,22 +54,27 @@ makeNeovimConfig {
             handlers
             templateFolder
             ;
-
-          inherit (pkgs.lib) attrNames;
         in
         {
           inherit plugin;
           config =
             let
-							boolToStr = x: if x then "true" else "false";
+              boolToStr = x: if x then "true" else "false";
               handlersTable =
                 "{"
                 + (concatLines (
-                  map (key: "${key} = function (client, link)\n${handlers.${key}}\nend,") (attrNames handlers)
+                  map (x: ''
+                    {
+                    	pattern = "${x.pattern}",
+                    	handler = function (client, link)
+                    		${x.handler}
+                    	end
+                    },
+                  '') handlers
                 ))
                 + "}";
             in
-            builtins.trace (toString root) toLua (concatLines [
+            toLua (concatLines [
               # Normal configuration
               (setup "nvn" ''
                 root = "${root}",

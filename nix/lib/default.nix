@@ -29,7 +29,7 @@ let
     index = "README.md";
     autoEvaluation = false;
     autoSave = true;
-    handlers = { };
+    handlers = [];
     templateFolder = "templates";
 
     keymaps = {
