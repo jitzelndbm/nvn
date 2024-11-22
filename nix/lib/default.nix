@@ -98,7 +98,7 @@ let
 					mv $out/bin/nvim $out/bin/.nvn-wrapped
 					touch $out/bin/nvn
 					chmod +x $out/bin/nvn
-					echo -e "exec $out/bin/.nvn-wrapped "${settings.root}/${settings.index}"" > $out/bin/nvn
+					echo -e "#!/usr/bin/env bash\nexec $out/bin/.nvn-wrapped "${settings.root}/${settings.index}"" > $out/bin/nvn
         '';
       }));
 

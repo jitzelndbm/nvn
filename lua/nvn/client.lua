@@ -21,6 +21,7 @@ Client.__index = Client
 function Client.new(config)
 	local self = setmetatable({}, Client)
 	self.config = config
+	self.config.root = vim.fs.dirname(vim.fn.expand("%:p"))
 	local status, path_or_err = pcall(
 		Path.new_from_full,
 		config.root,

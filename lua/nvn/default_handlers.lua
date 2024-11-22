@@ -17,6 +17,8 @@ default_handlers.markdown = function(client, link)
 	local p = Path.new_from_note(client.current, link.url)
 	local n = Note.new(p)
 
+	vim.notify(p.full_path)
+
 	if not p:exists() then
 		-- Make the user choose a template for the new file
 		local t = Template.from_picker(

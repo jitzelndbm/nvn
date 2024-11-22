@@ -77,16 +77,20 @@
         {
           default = lib.mkNvn;
           plugin = lib.mkPlugin;
-					graph = lib.mkGraph;
+          graph = lib.mkGraph;
+          development = lib.mkNvn.override {
+            root = "./test_notes";
+            index = "README.md";
+          };
         }
       );
 
       apps = eachSystem (
         { system, ... }:
         {
-          default = {
+          development = {
             type = "app";
-            program = "${self.packages.${system}.default}/bin/${name}";
+            program = "${self.packages.${system}.development}/bin/nvn";
           };
         }
       );
