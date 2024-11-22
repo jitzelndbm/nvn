@@ -55,7 +55,8 @@ function nvn.setup(config)
 	c:register_commands()
 
 	local g = Graph.new()
-	g:open(c.client)
+	g:construct(c.client)
+	g:open()
 end
 
 return nvn

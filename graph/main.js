@@ -10,30 +10,12 @@ export default function myGraph(nodes, edges) {
 
   nodes.forEach((el) => {
     let indentation = (el.match(new RegExp("/", "g")) || []).length;
-    let color = "blue";
+    let color = "black";
     let label = el;
-    let size = 10;
+    let size = 15;
 
-    if (el.startsWith("https://") || el.startsWith("http://")) {
+    if (/^[a-zA-Z]+:\/\//.test(label)) {
       color = "red";
-    }
-
-    if (el.endsWith("/index.md")) {
-      label = el.slice(0, -8);
-      color = "green";
-    }
-
-    if (el == "index.md") {
-      color = "black";
-      size = 12;
-    }
-
-    if (!label.endsWith("/")) {
-      indentation += 1;
-    }
-
-    if (indentation != 0) {
-      size *= 2 / indentation;
     }
 
     graph.addNode(el, {
@@ -47,7 +29,7 @@ export default function myGraph(nodes, edges) {
   });
 
   edges.forEach((el) => {
-    graph.addEdge(el[0], el[1], { size: 1, color: "darkgray" });
+    graph.addEdge(el[0], el[1], { size: 3, color: "lightgray" });
   });
 
   // Create the spring layout and start it
