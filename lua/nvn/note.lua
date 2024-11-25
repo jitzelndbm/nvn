@@ -106,6 +106,7 @@ function Note:set_lines(begin_line, end_line, lines)
 end
 
 function Note:evaluate()
+	local cwd = vim.fn.getcwd()
 	self:buf_call(function()
 		-- First go over all code blocks
 		local markdown_root =
@@ -134,7 +135,9 @@ function Note:evaluate()
 				error("Parse error occured in block at: " .. parse_error)
 			end
 
+			vim.fn.chdir(vim.fs.dirname(self.path.full_path))
 			local success, res_or_err = xpcall(eval_func, err.handler)
+			vim.fn.chdir(cwd)
 			if not success then
 				error(
 					"Runtime error during execution of code block" .. res_or_err
@@ -188,7 +191,9 @@ function Note:evaluate()
 					error("Parse error occured in block at: " .. parse_error)
 				end
 
+				vim.fn.chdir(vim.fs.dirname(self.path.full_path))
 				local success, res_or_err = xpcall(eval_func, err.handler)
+				vim.fn.chdir(cwd)
 				if not success then
 					error(
 						"Runtime error during execution of code block"
