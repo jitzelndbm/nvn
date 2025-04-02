@@ -1,8 +1,4 @@
-{
-  pkgs,
-  src,
-  name,
-}:
+{ pkgs, ... }:
 let
   inherit (pkgs) wrapNeovimUnstable neovim-unwrapped buildNpmPackage;
   inherit (pkgs.lib) makeOverridable;
@@ -29,7 +25,7 @@ let
     index = "README.md";
     autoEvaluation = false;
     autoSave = true;
-    handlers = [];
+    handlers = [ ];
     templateFolder = "templates";
 
     keymaps = {
@@ -87,20 +83,22 @@ let
 
   mkNvnUnwrapped =
     settings:
-    ((wrapNeovimUnstable neovim-unwrapped (
-      import ./config.nix {
-        inherit pkgs settings;
-        plugin = mkPlugin;
-      }
-    )).overrideAttrs (old:
-      {
+    (
+      (wrapNeovimUnstable neovim-unwrapped (
+        import ./config.nix {
+          inherit pkgs settings;
+          plugin = mkPlugin;
+        }
+      )).overrideAttrs
+      (old: {
         postInstall = ''
-					mv $out/bin/nvim $out/bin/.nvn-wrapped
-					touch $out/bin/nvn
-					chmod +x $out/bin/nvn
-					echo -e "#!/usr/bin/env bash\nexec $out/bin/.nvn-wrapped "${settings.root}/${settings.index}"" > $out/bin/nvn
+          mv $out/bin/nvim $out/bin/.nvn-wrapped
+          touch $out/bin/nvn
+          chmod +x $out/bin/nvn
+          echo -e "#!/usr/bin/env bash\nexec $out/bin/.nvn-wrapped "${settings.root}/${settings.index}"" > $out/bin/nvn
         '';
-      }));
+      })
+    );
 
   mkNvn = makeOverridable mkNvnUnwrapped defaultSettings;
 in
