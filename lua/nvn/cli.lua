@@ -10,135 +10,132 @@ local Note = require("nvn.note")
 ---@class Graph
 local Graph = require("nvn.graph")
 
-local err = require("nvn.error")
+---@class Result
+local Result = require("nvn.result")
 
---- # Cli class
---- @class (exact) Cli
----
---- ## Fields
---- @field client Client
---- @field __index Cli
----darkgray
---- ## Methods
---- @field new function
---- @field register function
----
---- ### Conventions
---- These methods correspond to literal commands from the plugin
+---@class Option
+local Option = require("nvn.option")
+
+---@class Cli
+---@field private client Client
+---@field private commands table
 local Cli = {}
 Cli.__index = Cli
 
+---@param client Client
+---@return Cli
 function Cli.new(client)
 	local self = setmetatable({}, Cli)
 	self.client = client
 	return self
 end
 
---- Move the cursor to the next link in the current buffer, if there is no link nothing happens
+---Move the cursor to the next link in the current buffer, if there is no link nothing happens
+---
+---@return Result
 function Cli:next_link()
-	local status, link_or_err = xpcall(
-		Navigation.next_link,
-		err.handler,
-		self.client.current.navigation
-	)
-
-	if status then
-		vim.api.nvim_win_set_cursor(0, { link_or_err.row, link_or_err.col })
-	else
-		error("Next Link command failed" .. link_or_err)
-	end
+	return self.client.current.navigation:next_link():map(function(link)
+		vim.api.nvim_win_set_cursor(0, {
+			(link --[[@as Link]]).row,
+			(link --[[@as Link]]).col,
+		})
+	end)
 end
 
---- Move the cursor to the previous link in the buffer, if there is no link nothing happens
+---Move the cursor to the previous link in the buffer, if there is no link nothing happens
+---
+---@return Result
 function Cli:previous_link()
-	local status, link_or_err = xpcall(
-		Navigation.previous_link,
-		err.handler,
-		self.client.current.navigation
-	)
-
-	if status then
-		vim.api.nvim_win_set_cursor(0, { link_or_err.row, link_or_err.col })
-	else
-		error("Previous link command failed" .. link_or_err)
-	end
+	return self.client.current.navigation:previous_link():map(function(link)
+		vim.api.nvim_win_set_cursor(0, {
+			(link --[[@as Link]]).row,
+			(link --[[@as Link]]).col,
+		})
+	end)
 end
 
---- Follows the link under the cursor if it is a link, otherwise this function puts <CR> into vim
+---Follows the link under the cursor if it is a link, otherwise this function presses <CR>
+---
+---@return Result
 function Cli:follow_link()
-	local status, link = xpcall(
-		self.client.current.navigation.current_link,
-		err.handler,
-		self.client.current.navigation,
-		self
-	)
+	local found = self.client.current.navigation
+		:current_link()
+		:or_else(function()
+			vim.cmd('execute "normal! \\<CR>"')
+			return Result.Ok(nil) -- Return dummy ok to ignore error handling
+		end)
+		:and_then(function(link)
+			return (link --[[@as Link]]):follow(self.client)
+		end)
 
-	if status then
-		local msg
-		status, msg = xpcall(link.follow, err.handler, link, self.client)
-		if not status then error("Following link failed" .. msg) end
-	else
-		--error("Link could not be found under cursor" .. link)
-		-- Handle the case that a link could not be found
-		vim.cmd('execute "normal! \\<CR>"')
-	end
+	return found
 end
 
 ---A function to create a note relative to the current note
+---
+---@return Result
 function Cli:create_note()
-	local file_name = vim.fn.input("Filename (relative to current open note): ")
-	local new_path = Path.new_from_note(self.client.current, file_name)
-	local new_note = Note.new(new_path)
-	local status, msg =
-		xpcall(self.client.add, err.handler, self.client, new_note)
-
-	if status then
-		self.client:set_location(new_note)
-	else
-		error("Note could not be created" .. msg)
+	local input = vim.fn.input("Filename (relative to current open note): ")
+	local file_name = input == "" and Option.None() or Option.Some(input)
+	if file_name:is_none() then
+		return Result.Err("File name cannot be empty")
 	end
+
+	local new_note =
+		Note.new(Path.new_from_note(self.client.current, file_name:unwrap()))
+
+	local res = self.client:add(new_note)
+	if res:is_ok() then self.client:set_location(new_note) end
+	return res
 end
 
 ---Go to the previously visited note
+---
+---@return Result
 function Cli:goto_previous()
 	local last = self.client.history:last()
 	self.client.history:pop()
 	self.client:set_location(last)
+	return Result.Ok()
 end
 
 --function Cli:delete_note()
 --end
 
-function Cli:evaluate()
-	local status, msg =
-		xpcall(self.client.current.evaluate, err.handler, self.client.current)
-	if not status then
-		error("Evaluating the code blocks of the document failed" .. msg)
-	end
-end
+---Evaluatate the current note
+---
+---@return Result
+function Cli:evaluate() return self.client.current:evaluate() end
 
+---
+---
+---@return Result
 function Cli:open_graph()
 	local g = Graph.new()
 	g:construct(self.client)
 	g:open()
+	return Result.Ok()
 end
 
+---Registers all commands as nvim user commands
 function Cli:register_commands()
-	local function xpn(k, m, a)
-		vim.api.nvim_create_user_command(k, function()
-			local status, error = xpcall(m, err.handler, a)
-			if not status then err.print(error) end
+	---@type [string, fun(self: Cli): Result][]
+	local cmds = {
+		{ "NvnPreviousLink", self.previous_link },
+		{ "NvnNextLink", self.next_link },
+		{ "NvnFollowLink", self.follow_link },
+		{ "NvnEval", self.evaluate },
+		{ "NvnCreateNote", self.create_note },
+		{ "NvnGotoPrevious", self.goto_previous },
+		{ "NvnOpenGraph", self.open_graph },
+	}
+
+	for _, cmd in ipairs(cmds) do
+		vim.api.nvim_create_user_command(cmd[1], function()
+			-- Unwrap the result, thus reporting the error
+			cmd[2](self):unwrap()
 		end, {})
 	end
-
-	-- Register all commands
-	xpn("NvnPreviousLink", self.previous_link, self)
-	xpn("NvnNextLink", self.next_link, self)
-	xpn("NvnFollowLink", self.follow_link, self)
-	xpn("NvnEval", self.evaluate, self)
-	xpn("NvnCreateNote", self.create_note, self)
-	xpn("NvnGotoPrevious", self.goto_previous, self)
-	xpn("NvnOpenGraph", self.open_graph, self)
 end
 
 return Cli

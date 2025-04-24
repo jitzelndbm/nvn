@@ -18,44 +18,20 @@ local default_config = {
 
 	-- Link handlers
 	handlers = {},
-
-	-- TODO: Remove this
-	--handlers = {
-	--	{
-	--		pattern = "^assets://",
-
-	--		---Asset opener, links that start with assets://
-	--		---@param link Link
-	--		handler = function(_, link)
-	--			local p = vim.fs.normalize(
-	--				vim.fs.joinpath(root, "assets", link.url:sub(10))
-	--			)
-
-	--			if vim.fn.filereadable(p) == 0 then
-	--				vim.notify("File does not exist")
-	--				return
-	--			end
-
-	--			vim.ui.open(p)
-	--		end,
-	--	},
-	--},
 }
 
 local nvn = {}
 
 function nvn.setup(config)
-
 	local merged_config =
 		vim.tbl_deep_extend("force", default_config, (config or {}))
-	local c = Cli.new(Client.new(merged_config))
+	local c = Cli.new(Client.new(merged_config):unwrap())
 
 	-- Change the working directory
 	vim.fn.chdir(merged_config.root)
 
 	-- Register all user commands
 	c:register_commands()
-
 end
 
 return nvn

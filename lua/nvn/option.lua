@@ -1,6 +1,3 @@
----@class Result
-local Result = require("nvn.result");
-
 ---@class Option
 ---@field private _value any | nil
 local Option = {}
@@ -13,10 +10,9 @@ Option.__index = Option
 ---@return Option
 Option.Some = function(value)
 	local self = setmetatable({}, Option)
-	self._value = value;
+	self._value = value
 	return self
 end
-
 
 ---Create a None variant of the Option class.
 ---
@@ -24,10 +20,9 @@ end
 ---@return Option
 Option.None = function()
 	local self = setmetatable({}, Option)
-	self._value = nil;
+	self._value = nil
 	return self
 end
-
 
 ---If the function returns an error, this method will output the None variant
 ---
@@ -36,14 +31,13 @@ end
 ---@param ... unknown
 ---@return Option
 Option.pcall = function(fn, ...)
-	local ok, value = pcall(fn, ...);
+	local ok, value = pcall(fn, ...)
 	if ok then
-		return Option.Some(value);
+		return Option.Some(value)
 	else
 		return Option.None()
 	end
 end
-
 
 ---Returns None if the option is None, otherwise returns optb.
 ---
@@ -123,9 +117,7 @@ end
 ---@param f any
 ---@return Option
 function Option:inspect(f)
-	if self:is_some() then
-		f(self._value)
-	end
+	if self:is_some() then f(self._value) end
 
 	return self
 end
@@ -133,32 +125,24 @@ end
 ---Returns true if the option is not a value.
 ---
 ---@return boolean
-function Option:is_none()
-	return not self:is_some()
-end
+function Option:is_none() return not self:is_some() end
 
 ---Returns true  fi the option is not a value or the inside matches the predicate.
 ---
 ---@param f fun(x: any): boolean
 ---@return boolean
-function Option:is_none_or(f)
-	return self:is_none() or f(self._value)
-end
+function Option:is_none_or(f) return self:is_none() or f(self._value) end
 
 ---Returns true if the option is a value.
 ---
 ---@return boolean
-function Option:is_some()
-	return self._value ~= nil
-end
+function Option:is_some() return self._value ~= nil end
 
 ---Returns true if the option is a value and the inside matches the predicate.
 ---
 ---@param f fun(x: any): boolean
 ---@return boolean
-function Option:is_some_and(f)
-	return self:is_some() and f(self._value)
-end
+function Option:is_some_and(f) return self:is_some() and f(self._value) end
 
 ---Maps an Option<T> to Option<U> by applying a function to a contained value (if Some) or returns None (if None).
 ---
@@ -193,6 +177,9 @@ end
 ---@param err E
 ---@return Result
 function Option:ok_or(err)
+	---@class Result
+	local Result = require("nvn.result")
+
 	if self:is_some() then
 		return Result.Ok(self._value)
 	else
@@ -207,6 +194,9 @@ end
 ---@param errf fun(): E
 ---@return Result
 function Option:ok_or_else(errf)
+	---@class Result
+	local Result = require("nvn.result")
+
 	if self:is_some() then
 		return Result.Ok(self._value)
 	else
@@ -253,7 +243,7 @@ end
 
 ---Returns the contained Some value, consuming the self value.
 ---
----@returns any
+---@return any
 function Option:unwrap()
 	if self:is_some() then
 		return self._value
@@ -285,6 +275,5 @@ function Option:unwrap_or_else(f)
 		return f()
 	end
 end
-
 
 return Option

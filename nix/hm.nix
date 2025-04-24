@@ -40,12 +40,12 @@ in
 
     handlers = mkOption {
       type = types.listOf (
-				types.submodule {
-					options = {
-						pattern = mkOption {type = types.str;};
-						handler = mkOption {type = types.str;};
-					};
-				}
+        types.submodule {
+          options = {
+            pattern = mkOption { type = types.str; };
+            handler = mkOption { type = types.str; };
+          };
+        }
       );
       description = "Handlers for links in the plugin";
       default = [ ];
@@ -65,12 +65,12 @@ in
 
     extraPlugins = mkOption {
       type = types.listOf (
-				types.submodule {
-					options = {
-						plugin = mkOption {type = types.package;};
-						config = mkOption {type = types.str;};
-					};
-				}
+        types.submodule {
+          options = {
+            plugin = mkOption { type = types.package; };
+            config = mkOption { type = types.str; };
+          };
+        }
       );
       description = "Extra plugins";
       default = [ ];

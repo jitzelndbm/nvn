@@ -1,5 +1,10 @@
+---@module 'nvn.default_handlers'
 local default_handlers = require("nvn.default_handlers")
-local err = require("nvn.error")
+
+---@class Result
+local Result = require("nvn.result")
+---@class Option
+local Option = require("nvn.option")
 
 ---This class represents a link in a markdown Note
 ---@class Link
@@ -11,45 +16,54 @@ local err = require("nvn.error")
 local Link = {}
 Link.__index = Link
 
----Create a link
+---Returns a link object, constructed from a treesitter node
+---
 ---@param node TSNode
----@return Link
+---@return Result Link
 function Link.new(node)
 	local self = setmetatable({}, Link)
 
 	local type = node:type()
 
 	if not type == "shortcut_link" or not type == "inline_link" then
-		error("Could not construct a link form node type: " .. type)
+		return Result.Err("Could not construct a link form node type: " .. type)
 	end
-
 	self.shortcut = node:type() == "shortcut_link"
-	if self.shortcut then
-		local url_node = node:child(1)
-			or error("The link url could not be found")
-		self.url = vim.treesitter.get_node_text(url_node, 0)
-	else
-		local title_node = node:child(1)
-			or error("The link title could not be found")
-		self.title = vim.treesitter.get_node_text(title_node, 0)
 
-		local url_node = node:child(4)
-			or error("The link url could not be found")
-		self.url = vim.treesitter.get_node_text(url_node, 0)
+	local url_res = Option.Some(node:child(self.shortcut and 1 or 4))
+		:inspect(
+			function(url_node)
+				self.url = vim.treesitter.get_node_text(url_node, 0)
+			end
+		)
+		:ok_or("Link url could be found")
+	if url_res:is_err() then return url_res end
+
+	if self.shortcut then
+		local title_res = Option.Some(node:child(1))
+			:inspect(
+				function(title_node)
+					self.title = vim.treesitter.get_node_text(title_node, 0)
+				end
+			)
+			:ok_or("Link title could not be found")
+		if title_res:is_err() then return url_res end
 	end
 
 	local row, col = node:start()
 	self.row = row + 1
 	self.col = col
 
-	return self
+	return Result.Ok(self)
 end
 
+---Follow a link object, using a dictionary of handler functions
+---
 ---@param client Client
+---@return Result
 function Link:follow(client)
-	---@type { pattern: string, handler: function }[]
+	---@type HandlerEntry[]
 	local merged = {}
-
 	---@type boolean[]
 	local patterns = {}
 
@@ -67,21 +81,19 @@ function Link:follow(client)
 		end
 	end
 
-	---@type { pattern: string, handler: function }
+	---@type HandlerEntry
 	local fallback
 
+	-- Check every entry to see if it matched, and assign the fallback
 	for _, entry in pairs(merged) do
 		if type(entry.pattern) == "string" and self.url:find(entry.pattern) then
-			local status, msg = xpcall(entry.handler, err.handler, client, self)
-			if not status then error("Error in handler: " .. msg) end
-			return
+			return Result.pcall(entry.handler, client, self)
 		else
 			fallback = entry
 		end
 	end
 
-	local status, msg = xpcall(fallback.handler, err.handler, client, self)
-	if not status then error("Error in fallback handler: " .. msg) end
+	return Result.pcall(fallback.handler, client, self)
 end
 
 return Link

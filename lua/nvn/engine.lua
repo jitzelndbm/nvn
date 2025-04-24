@@ -1,22 +1,33 @@
 -- Credit goes to Danila Poyarkov <dannotemail@gmail.com>
 -- https://github.com/dannote/lua-template
 --
--- DISCLAIMER: This code has been modified
+-- note: code has been modified
 
 local engine = {}
 
-local err = require("nvn.error")
+---@class Result
+local Result = require("nvn.result")
 
+---@diagnostic disable:redefined-local
+
+---@param data string
+---@return string
 function engine.escape(data)
-	return tostring(data or ""):gsub("[\">/<'&]", {
-		["&"] = "&",
-		["<"] = "<",
-		[">"] = ">",
-		['"'] = '"',
-		["'"] = "'",
-		["/"] = "/",
-	})
+	return (
+		tostring(data or ""):gsub("[\">/<'&]", {
+			["&"] = "&",
+			["<"] = "<",
+			[">"] = ">",
+			['"'] = '"',
+			["'"] = "'",
+			["/"] = "/",
+		})
+	)
 end
+
+---@param data string | function
+---@param args table?
+---@return string
 function engine.render(data, args)
 	local str = ""
 	local function exec(data)
@@ -34,6 +45,9 @@ function engine.render(data, args)
 	return str
 end
 
+---@param data string | function
+---@param args table?
+---@param callback function?
 function engine.print(data, args, callback)
 	callback = callback or print
 	local function exec(data)
@@ -49,6 +63,9 @@ function engine.print(data, args, callback)
 	exec(data)
 end
 
+---@param data table
+---@param minify boolean
+---@return string
 function engine.parse(data, minify)
 	local str = "return function(_)"
 		.. "function __(...)"
@@ -71,25 +88,14 @@ function engine.parse(data, minify)
 	return str
 end
 
+---@param ... unknown
+---@return Result string
 function engine.compile(...)
-	-- NOTE: added new lines to the errors, so they stand out more, end users interact
-	-- with these errors much.
-
 	local template_func, err_msg = loadstring(engine.parse(...))
 	if not template_func then
-		error("Parse error in template: \n\n" .. err_msg)
+		return Result.Err("Parse error in template: \n\n" .. err_msg)
 	end
-
-	---@type boolean
-	local success
-	---@type string
-	local result_or_err
-	success, result_or_err = xpcall(template_func, err.handler)
-	if not success then
-		error("Runtime error in template: \n\n" .. result_or_err)
-	end
-
-	return result_or_err
+	return Result.pcall(template_func)
 end
 
 return engine

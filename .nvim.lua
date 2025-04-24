@@ -17,6 +17,9 @@ require("lspconfig").lua_ls.setup({
 				-- Get the language server to recognize the `vim` global
 				globals = { "vim", "MiniPick" },
 			},
+			format = {
+				enable = false,
+			},
 			workspace = {
 				checkThirdParty = false,
 				library = {

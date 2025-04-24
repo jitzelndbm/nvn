@@ -1,6 +1,3 @@
----@class Option
-local Option = require("nvn.option")
-
 ---@class Result
 ---@field private _is_ok boolean
 ---@field private _value any
@@ -19,7 +16,6 @@ Result.Ok = function(value)
 	return self
 end
 
-
 ---Constructor for the Err variant of Result
 ---
 ---@nodiscard
@@ -32,23 +28,21 @@ Result.Err = function(error)
 	return self
 end
 
-
----Constructor that outputs an error type if the value is nil
----
----@nodiscard
----@param value any | nil
----@return Result
-Result.Option = function(value)
-	local self = setmetatable({}, Result)
-	if value then
-		self._is_ok = true
-	else
-		self._is_ok = false
-	end
-	self._value = value
-	return self
-end
-
+-- ---Constructor that outputs an error type if the value is nil
+-- ---
+-- ---@nodiscard
+-- ---@param value any | nil
+-- ---@return Result
+-- Result.Option = function(value)
+-- 	local self = setmetatable({}, Result)
+-- 	if value then
+-- 		self._is_ok = true
+-- 	else
+-- 		self._is_ok = false
+-- 	end
+-- 	self._value = value
+-- 	return self
+-- end
 
 ---Wraps pcall with proper error handling and overload signatures
 ---
@@ -57,7 +51,7 @@ end
 ---@param err any
 ---@param ... unknown
 ---@return Result
-function Result.pcall(fn, err, ...)
+function Result.pcall_err(fn, err, ...)
 	local ok, value = pcall(fn, ...)
 	if ok then
 		return Result.Ok(value)
@@ -66,12 +60,25 @@ function Result.pcall(fn, err, ...)
 	end
 end
 
+---Wraps pcall with proper error handling and overload signatures
+---
+---@nodiscard
+---@param fn function
+---@param ... unknown
+---@return Result
+function Result.pcall(fn, ...)
+	local ok, value = pcall(fn, ...)
+	if ok then
+		return Result.Ok(value)
+	else
+		return Result.Err(value)
+	end
+end
+
 ---Returns true if the result is Ok.
 ---
 ---@return boolean
-function Result:is_ok()
-	return self._is_ok
-end
+function Result:is_ok() return self._is_ok end
 
 ---Returns true if the result is Ok and the value inside of it matches a predicate.
 ---
@@ -85,22 +92,21 @@ end
 --- Returns true if the result is Err
 ---
 --- @return boolean
-function Result:is_err()
-	return not self._is_ok
-end
+function Result:is_err() return not self._is_ok end
 
 ---Returns true if the result is Err and the value inside of it matches a predicate.
 ---
 ---@param f fun(x: any): boolean
 ---@return boolean
-function Result:is_err_and(f)
-	return self:is_err() and f(self._value)
-end
+function Result:is_err_and(f) return self:is_err() and f(self._value) end
 
 ---Transforms Result<T,E> into Option<T>
 ---
 ---@return Option
 function Result:ok()
+	---@class Option
+	local Option = require("nvn.option")
+
 	if self:is_ok() then
 		return Option.Some(self._value)
 	else
@@ -112,6 +118,9 @@ end
 ---
 ---@return Option
 function Result:err()
+	---@class Option
+	local Option = require("nvn.option")
+
 	if self:is_err() then
 		return Option.Some(self._value)
 	else
@@ -161,7 +170,7 @@ end
 --- Maps a Result<T, E> to Result<T, F> by applying a function to a contained Err value, leaving an Ok value untouched.
 ---
 ---@nodiscard
----@param op fun(err: any)
+---@param op fun(err: any): any
 ---@return Result
 function Result:map_err(op)
 	if self:is_ok() then
@@ -180,7 +189,7 @@ function Result:expect(msg)
 	if self:is_ok() then
 		return self._value
 	else
-		error(msg .. ": " .. self._value, 2)
+		error(msg .. ": " .. self._value)
 	end
 end
 
@@ -191,7 +200,7 @@ function Result:unwrap()
 	if self:is_ok() then
 		return self._value
 	else
-		error(self._value, 2)
+		error(self._value)
 	end
 end
 
@@ -209,7 +218,6 @@ end
 
 -- TODO: expect_err
 -- TODO: unwrap_err
-
 
 ---Returns res if the result is Ok, otherwise returns the Err value of self.
 ---

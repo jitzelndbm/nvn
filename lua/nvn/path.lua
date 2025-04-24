@@ -1,10 +1,26 @@
---This class helps with working with paths
+---@class Result
+local Result = require("nvn.result")
+
+--This class helps with paths
 ---@class Path
 ---@field full_path string
 ---@field rel_to_root string
 local Path = {}
 Path.__index = Path
 
+---Returns an unchecked path.
+---WARNING: this will not initialize rel_to_root since the function assumes the full_path is outside of the notes dir.
+---
+---@param full_path string
+---@return Path
+function Path.new_unsafe(full_path)
+	local self = setmetatable({}, Path)
+	self.full_path = full_path
+	return self
+end
+
+---Returns a path relative to the provided client root
+---
 ---@param root string
 ---@param relative_path string
 ---@return Path
@@ -17,30 +33,32 @@ function Path.new_from_rel_to_root(root, relative_path)
 	return self
 end
 
----This function takes a note and a path relative to that note,
----it takes the dirname of the note's path and prepends it to
----the relative note.
+---Returns the relative path from note to other.
+---Example: `Note("/a/test/"), "../README.md" -> "/a/README.md"`
+---
 ---@param note Note
----@param url string
+---@param other string
 ---@return Path
-function Path.new_from_note(note, url)
+function Path.new_from_note(note, other)
 	local self = setmetatable({}, Path)
 	self.full_path = vim.fs.normalize(
-		vim.fs.joinpath(vim.fs.dirname(note.path.full_path), url)
+		vim.fs.joinpath(vim.fs.dirname(note.path.full_path), other)
 	)
 	self.rel_to_root = vim.fs.normalize(
-		vim.fs.joinpath(vim.fs.dirname(note.path.rel_to_root), url)
+		vim.fs.joinpath(vim.fs.dirname(note.path.rel_to_root), other)
 	)
 	return self
 end
 
 -- FIXME: Maybe it's a better idea to use ... arg, and just zip those
 -- parts together instead of assuming that a full path will be provided.
---
----Create a new path from a full path.
+
+---Create a new path from a full path. Will error if the provided root cannot be
+---extracted from the full_path.
+---
 ---@param root string
 ---@param full_path string
----@return Path
+---@return Result path
 function Path.new_from_full(root, full_path)
 	local self = setmetatable({}, Path)
 
@@ -51,16 +69,17 @@ function Path.new_from_full(root, full_path)
 	if root:sub(-1) == "/" then root = root:sub(1, -2) end
 
 	if not full_path:sub(1, #root) == root then
-		error("The root could not be extracted from the full_path")
+		return Result.Err("The root could not be extracted from the full_path")
 	end
 
 	self.full_path = full_path
 	self.rel_to_root = full_path:sub(#root + 2)
 
-	return self
+	return Result.Ok(self)
 end
 
----Returns if a file exists under this path
+---Returns true if a file exists under this path
+---
 ---@param self Path
 ---@return boolean
 function Path:exists() return vim.uv.fs_stat(self.full_path) ~= nil end
