@@ -69,16 +69,17 @@
       packages = eachSystem (
         { pkgs, ... }:
         let
-          lib = import ./nix/lib {
-            inherit pkgs name;
-            src = self;
+          graph = pkgs.callPackage ./nix/graph.nix { };
+          plugin = pkgs.callPackage ./nix/plugin.nix { inherit graph; };
+          nvn-unwrapped = pkgs.callPackage ./nix/nvn-unwrapped.nix { inherit plugin; };
+          nvn = import ./nix/nvn.nix {
+            inherit nvn-unwrapped;
+            inherit (pkgs.lib) makeOverridable;
           };
         in
         {
-          default = lib.mkNvn;
-          plugin = lib.mkPlugin;
-          graph = lib.mkGraph;
-          development = lib.mkNvn.override {
+          inherit graph plugin nvn;
+          development = nvn.override {
             root = "./test_notes";
             index = "README.md";
           };

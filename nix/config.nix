@@ -1,12 +1,13 @@
 {
-  pkgs,
   settings,
   plugin,
+  makeNeovimConfig,
+  concatLines,
+  mini-nvim,
+  nvim-treesitter,
+  base16-nvim,
 }:
 let
-  inherit (pkgs.lib) concatLines;
-  inherit (pkgs.neovimUtils) makeNeovimConfig;
-
   setup = plugin: opts: "require('${plugin}').setup({${opts}})";
 
   toLua = x: ''
@@ -38,7 +39,6 @@ makeNeovimConfig {
 
   plugins =
     let
-      inherit (pkgs.vimPlugins) mini-nvim nvim-treesitter base16-nvim;
       inherit (settings) extraPlugins;
     in
     extraPlugins
@@ -81,7 +81,7 @@ makeNeovimConfig {
                 index = "${index}",
                 auto_evaluation = ${boolToStr autoEvaluation},
                 auto_save = ${boolToStr autoSave},
-                template_folder = ${templateFolder},
+                template_folder = "${templateFolder}",
                 handlers = ${handlersTable},
               '')
 
@@ -108,11 +108,13 @@ makeNeovimConfig {
       }
 
       {
-        plugin = nvim-treesitter.withPlugins (p: [
-          p.markdown
-          p.markdown_inline
-          p.lua
-        ]);
+        plugin = nvim-treesitter.withPlugins (
+          p: with p; [
+            markdown
+            markdown_inline
+            lua
+r         ]
+        );
         config = toLua (setup "nvim-treesitter.configs" "highlight = { enable = true }");
       }
 

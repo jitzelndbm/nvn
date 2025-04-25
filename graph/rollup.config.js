@@ -5,7 +5,7 @@ import terser from "@rollup/plugin-terser";
 import babel from "@rollup/plugin-babel";
 
 export default {
-  input: "./graph/main.js",
+  input: "./src/main.js",
   plugins: [
     nodeResolve(),
     commonjs(),
