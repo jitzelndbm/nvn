@@ -30,14 +30,18 @@ function Graph.new()
 	)
 
 	local html_path = vim.fs.joinpath(lib_path, "./graph.html")
-	local html_file_res = Result.pcall(io.open, html_path)
+	local html_file_res = Result.pcall_err(
+		io.open,
+		"Graph html file not found: " .. html_path,
+		html_path
+	)
 	if html_file_res:is_err() then return html_file_res end
-	local html_file = html_file_res --[[@as file*]]
+	local html_file = html_file_res:unwrap() --[[@as file*]]
 
 	local data_path_res = Option.Some(vim.fn.stdpath("data"))
 		:ok_or("Local data path not found")
 	if data_path_res:is_err() then return data_path_res end
-	local data_path = data_path_res --[[@as string]]
+	local data_path = data_path_res:unwrap() --[[@as string]]
 
 	self.out_path =
 		vim.fs.normalize(vim.fs.joinpath(data_path, "nvn", "graph.html"))
@@ -64,6 +68,9 @@ function Graph:serialize()
 	return jd
 end
 
+---Open the graph in the browser
+---
+---@return Result
 function Graph:open()
 	local res =
 		string.format(self.html_template, self.graph_path, self:serialize())
@@ -78,6 +85,8 @@ function Graph:open()
 	out_file:close()
 
 	vim.ui.open(self.out_path)
+
+	return Result.Ok(nil)
 end
 
 ---Constructs a graph from note collection

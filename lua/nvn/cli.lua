@@ -104,13 +104,19 @@ end
 ---@return Result
 function Cli:evaluate() return self.client.current:evaluate() end
 
----
+---Construct and open a graph representation of the notes in the browser
 ---
 ---@return Result
 function Cli:open_graph()
-	local g = Graph.new()
-	g:construct(self.client)
-	g:open()
+	local gr = Graph.new()
+	if gr:is_err() then return gr end
+	local g = gr:unwrap() --[[@as Graph]]
+
+	local cr = g:construct(self.client)
+	if cr:is_err() then return cr end
+	local opr = g:open()
+	if opr:is_err() then return opr end
+
 	return Result.Ok()
 end
 
