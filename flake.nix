@@ -1,11 +1,14 @@
 {
-  description = ''
-    A Neovim plugin for taking notes. With Nix it can become a full fledged Neovim distribution!
-  '';
-
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pre-commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -13,62 +16,29 @@
       self,
       nixpkgs,
       treefmt-nix,
+      pre-commit-hooks,
       ...
     }:
     let
       name = "nvn";
-      systems = [ "x86_64-linux" ];
-      eachSystem =
-        f:
-        let
-          forAllSystems = nixpkgs.lib.genAttrs systems;
-        in
-        forAllSystems (
-          system:
-          f {
-            inherit system;
-            pkgs = import nixpkgs { inherit system; };
-          }
-        );
-    in
-    {
-      formatter = eachSystem (
-        { pkgs, ... }:
-        let
-          treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-        in
-        treefmtEval.config.build.wrapper
-      );
 
-      #################################################################
+      fa = nixpkgs.lib.genAttrs [ "x86_64-linux" ];
 
-      devShells = eachSystem (
-        { pkgs, ... }:
-        {
-          default = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              # Lua tools
-              stylua
-              luajit
-              lua-language-server
-              luajitPackages.ldoc
-
-              # Nix
-              nixd
-              nixfmt-rfc-style
-
-              # Javascript (graph)
-              nodejs
-            ];
-          };
+      pkgsBySystem = fa (
+        system:
+        import nixpkgs {
+          inherit system;
+          config.allowUnfree = false;
         }
       );
 
-      #################################################################
-
-      packages = eachSystem (
-        { pkgs, ... }:
+      treefmtEval = fa (system: treefmt-nix.lib.evalModule pkgsBySystem.${system} ./nix/formatters.nix);
+    in
+    {
+      packages = fa (
+        system:
         let
+          pkgs = pkgsBySystem.${system};
           graph = pkgs.callPackage ./nix/graph.nix { };
           plugin = pkgs.callPackage ./nix/plugin.nix { inherit graph; };
           nvn-unwrapped = pkgs.callPackage ./nix/nvn-unwrapped.nix { inherit plugin; };
@@ -78,25 +48,57 @@
           };
         in
         {
-          inherit graph plugin nvn;
-          development = nvn.override {
-            root = "./test_notes";
-            index = "README.md";
-          };
+          inherit nvn plugin graph;
+          default = self.packages.${system}.nvn;
         }
       );
 
-      apps = eachSystem (
-        { system, ... }:
+      devShells = fa (
+        system:
+        let
+          pkgs = pkgsBySystem.${system};
+        in
         {
-          development = {
-            type = "app";
-            program = "${self.packages.${system}.development}/bin/nvn";
-          };
+          default =
+            let
+              inherit (pkgs) mkShell nil;
+              inherit (pkgs.lib) concatLines;
+              inherit (self.checks.${system}.pre-commit-check) shellHook enabledPackages;
+
+              treefmt = treefmtEval.${system}.config.build.wrapper;
+              shell = import ./nix/shell.nix { inherit pkgs; };
+            in
+            mkShell (
+              shell
+              // {
+                packages = (shell.packages or [ ]) ++ [
+                  treefmt
+                  nil
+                  enabledPackages
+                ];
+
+                shellHook = concatLines [
+                  (shell.shellHook or "")
+                  shellHook
+                ];
+              }
+            );
         }
       );
 
-      #################################################################
+      formatter = fa (system: treefmtEval.${system}.config.build.wrapper);
+
+      checks = fa (system: {
+        pre-commit-check = pre-commit-hooks.lib.${system}.run {
+          src = ./.;
+          hooks = (import ./nix/pre-commit-hooks.nix) // {
+            treefmt = {
+              enable = true;
+              package = treefmtEval.${system}.config.build.wrapper;
+            };
+          };
+        };
+      });
 
       homeManagerModules.${name} = import ./nix/hm.nix self;
     };
