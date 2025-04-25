@@ -1,6 +1,3 @@
----@class Navigation
-local Navigation = require("nvn.navigation")
-
 ---@class Path
 local Path = require("nvn.path")
 

@@ -80,10 +80,12 @@ end
 ---@return Result Nil
 function Note:write(force, ...)
 	if not self.path:exists() and not force then
-		return Result.Err("Note exists on file system, thus may contain content. To overwrite enable arg force.")
+		return Result.Err(
+			"Note exists on file system, thus may contain content. To overwrite enable arg force."
+		)
 	end
 
-	local file_res = Result.pcall(io.open,self.path.full_path, "w")
+	local file_res = Result.pcall(io.open, self.path.full_path, "w")
 	if file_res:is_err() then return file_res end
 
 	local file = file_res:unwrap() --[[@as file*]]

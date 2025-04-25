@@ -113,7 +113,8 @@ makeNeovimConfig {
             markdown
             markdown_inline
             lua
-r         ]
+            r
+          ]
         );
         config = toLua (setup "nvim-treesitter.configs" "highlight = { enable = true }");
       }

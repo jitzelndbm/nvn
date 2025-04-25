@@ -30,15 +30,17 @@ function Graph.new()
 	)
 
 	local html_path = vim.fs.joinpath(lib_path, "./graph.html")
-	local html_file_res = Result.pcall(io.open,html_path)
+	local html_file_res = Result.pcall(io.open, html_path)
 	if html_file_res:is_err() then return html_file_res end
 	local html_file = html_file_res --[[@as file*]]
 
-	local data_path_res = Option.Some(vim.fn.stdpath("data")):ok_or("Local data path not found")
+	local data_path_res = Option.Some(vim.fn.stdpath("data"))
+		:ok_or("Local data path not found")
 	if data_path_res:is_err() then return data_path_res end
 	local data_path = data_path_res --[[@as string]]
 
-	self.out_path = vim.fs.normalize(vim.fs.joinpath(data_path, "nvn", "graph.html"))
+	self.out_path =
+		vim.fs.normalize(vim.fs.joinpath(data_path, "nvn", "graph.html"))
 	self.graph_path = vim.fs.joinpath(lib_path, "./graph.min.js")
 	self.html_template = html_file:read("*a")
 
@@ -63,7 +65,8 @@ function Graph:serialize()
 end
 
 function Graph:open()
-	local res = string.format(self.html_template, self.graph_path, self:serialize())
+	local res =
+		string.format(self.html_template, self.graph_path, self:serialize())
 
 	vim.fn.mkdir(vim.fs.dirname(self.out_path), "-p")
 

@@ -1,19 +1,19 @@
-{ pkgs, ... }:
+{ pkgs, selene-3p-language-server, ... }:
 {
-  default = pkgs.mkShell {
-    buildInputs = with pkgs; [
-      # Lua tools
-      stylua
-      luajit
-      lua-language-server
-      luajitPackages.ldoc
+  buildInputs = with pkgs; [
+    # Lua tools
+    stylua
+    luajit
+    lua-language-server
+    luajitPackages.ldoc
+    selene-3p-language-server
+    selene
 
-      # Nix
-      nixd
-      nixfmt-rfc-style
+    # Nix
+    nil
+    nixfmt-rfc-style
 
-      # Javascript (graph)
-      nodejs
-    ];
-  };
+    # Javascript (graph)
+    nodejs
+  ];
 }

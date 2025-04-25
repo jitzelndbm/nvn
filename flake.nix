@@ -8,6 +8,11 @@
     pre-commit-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
+
+    };
+    bun2nix = {
+      url = "github:baileyluTCD/bun2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -17,6 +22,7 @@
       nixpkgs,
       treefmt-nix,
       pre-commit-hooks,
+      bun2nix,
       ...
     }:
     let
@@ -46,9 +52,17 @@
             inherit nvn-unwrapped;
             inherit (pkgs.lib) makeOverridable;
           };
+          selene-3p-language-server = pkgs.callPackage ./nix/selene-3p-language-server.nix {
+            inherit (bun2nix.lib.${system}) mkBunDerivation;
+          };
         in
         {
-          inherit nvn plugin graph;
+          inherit
+            nvn
+            plugin
+            graph
+            selene-3p-language-server
+            ;
           default = self.packages.${system}.nvn;
         }
       );
@@ -66,7 +80,10 @@
               inherit (self.checks.${system}.pre-commit-check) shellHook enabledPackages;
 
               treefmt = treefmtEval.${system}.config.build.wrapper;
-              shell = import ./nix/shell.nix { inherit pkgs; };
+              shell = import ./nix/shell.nix {
+                inherit pkgs;
+                inherit (self.packages.${system}) selene-3p-language-server;
+              };
             in
             mkShell (
               shell
@@ -91,7 +108,7 @@
       checks = fa (system: {
         pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
-          hooks = (import ./nix/pre-commit-hooks.nix) // {
+          hooks = (import ./nix/pre-commit-hooks.nix { pkgs = pkgsBySystem.${system}; }) // {
             treefmt = {
               enable = true;
               package = treefmtEval.${system}.config.build.wrapper;

@@ -1,1 +1,1 @@
-return "Hello World!"
+return "\nHello World!\n"

@@ -1,4 +1,11 @@
+{ pkgs }:
 {
-  #cargo-check.enable = true;
-  #clippy.enable = true;
+  #selene = {
+  #  enable = true;
+  #  args = pkgs.lib.flatten [
+  #    "--config"
+  #    (builtins.toString ../selene.toml)
+  #    (builtins.toString ../lua)
+  #  ];
+  #};
 }

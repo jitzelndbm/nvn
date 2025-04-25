@@ -34,3 +34,4 @@ require("lspconfig").lua_ls.setup({
 
 require("lspconfig").nil_ls.setup({})
 require("lspconfig").eslint.setup({})
+require("lspconfig").selene3p_ls.setup({})
