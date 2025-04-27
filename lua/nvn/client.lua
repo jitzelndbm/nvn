@@ -41,12 +41,13 @@ end
 
 ---Move the nvn buffer to a new location
 ---
----@param note Note
-function Client:set_location(note)
+---@param note Note the new buffer
+---@param force boolean? forcefully remove current buffer, override auto save
+function Client:set_location(note, force)
 	self.current = note
 
 	-- Delete all other buffers
-	if self.config.auto_save then
+	if self.config.auto_save and not force then
 		vim.cmd.write()
 		vim.api.nvim_buf_delete(0, {})
 	else
@@ -101,10 +102,20 @@ end
 -- ---@param n? Note
 -- function Client:move(n, new_path) n = n or self.current end
 
---TODO
--- ---This function removes a note from the file system, forcefully
--- ---@param n? Note
--- function Client:remove(n) n = n or self.current end
+---This function removes a note from the file system, forcefully
+---
+---@param note Note
+---@return Result Nil
+function Client:remove(note)
+	if not note.path:exists() then
+		return Result.Err("The note does not exist")
+	end
+
+	local res = Result.pcall(os.remove, note.path.full_path)
+	if res:is_err() then return res end
+
+	return Result.Ok(nil)
+end
 
 --TODO
 -- function Client:get_all_notes()

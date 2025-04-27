@@ -86,6 +86,17 @@ function Cli:create_note()
 	return res
 end
 
+---Delete the current note
+---
+---@return Result
+function Cli:delete_note()
+	self.client.history:pop()
+	local res = self.client:remove(self.client.current)
+	if res:is_err() then return res end
+	self.client:set_location(self.client.history:last(), true)
+	return Result.Ok(nil)
+end
+
 ---Go to the previously visited note
 ---
 ---@return Result
@@ -95,9 +106,6 @@ function Cli:goto_previous()
 	self.client:set_location(last)
 	return Result.Ok()
 end
-
---function Cli:delete_note()
---end
 
 ---Evaluatate the current note
 ---
@@ -129,6 +137,7 @@ function Cli:register_commands()
 		{ "NvnFollowLink", self.follow_link },
 		{ "NvnEval", self.evaluate },
 		{ "NvnCreateNote", self.create_note },
+		{ "NvnDeleteNote", self.delete_note },
 		{ "NvnGotoPrevious", self.goto_previous },
 		{ "NvnOpenGraph", self.open_graph },
 	}
