@@ -81,9 +81,14 @@ default_handlers.folder = function(client, link)
 	if client.config.auto_evaluation then n:evaluate() end
 end
 
----@param _ Client
+---@param client Client
 ---@param link Link
-default_handlers.default = function(_, link) vim.ui.open(link.url) end
+default_handlers.default = function(client, link)
+	local oldcwd = vim.fn.getcwd()
+	vim.cmd.cd(vim.fs.dirname(client.current.path.full_path))
+	vim.ui.open(link.url)
+	vim.cmd.cd(oldcwd)
+end
 
 ---@type HandlerEntry[]
 default_handlers.mapping = {

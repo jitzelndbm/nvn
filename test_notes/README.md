@@ -5,6 +5,7 @@
 test
 [https://en.wikipedia.org]
 [another one](https://google.com)
+[Folder note that does exist](folder/)
 test
 [a](a.md)
 [b](b.md)
